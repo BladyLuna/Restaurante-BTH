@@ -1,0 +1,416 @@
+===============================================================
+  SISTEMA DE PEDIDOS DEL RESTAURANTE
+  Preguntas y reglas que necesitamos acordar antes de programar
+===============================================================
+
+Fecha: 16 de octubre de 2026
+Para: la dueña del restaurante
+De: Bladimir (desarrollo)
+
+Este documento NO es tecnico. Son decisiones del negocio que solo
+usted puede tomar. Cada una es una situacion que va a pasar en el
+local, y si no esta decidida de antemano, el sistema va a hacer algo
+que a usted no le conviene.
+
+No hace falta responder todo de una vez. Lo que esta marcado como
+URGENTE es lo que frena el trabajo; el resto se puede ir cerrando.
+
+---------------------------------------------------------------
+  COMO VA A FUNCIONAR (resumen de lo ya acordado)
+---------------------------------------------------------------
+
+1. El cliente pide solo, en una tablet puesta en la entrada.
+2. En la pantalla sale su numero de pedido y cuanto tiene que pagar.
+3. Paga escaneando su QR con la app de su banco. El dinero entra
+   directo a su cuenta, nosotros no lo tocamos.
+4. Alguien del local mira la app del banco, ve que entro la plata,
+   y marca el pedido como pagado en el sistema.
+5. Recien ahi la cocina ve el pedido y empieza a prepararlo.
+6. Cuando esta listo se canta el numero y el cliente retira.
+
+La regla mas importante de todo el sistema:
+
+  NUNCA se marca un pedido como pagado porque el cliente diga que
+  pago, ni porque muestre una captura de pantalla. Solo se marca
+  pagado cuando se vio la plata en la cuenta del banco.
+
+Una captura de pantalla se puede falsificar, se puede reciclar de
+un pago de ayer, o puede ser el pago de otro cliente. Todo el
+sistema esta disenado para que esa regla no se rompa.
+
+Lo que el sistema NO hace: no se conecta con su banco. No sabe si
+le entro plata. Esa parte la hace una persona mirando el celular.
+Esto es porque conectarse al banco necesita cuenta empresa, NIT y
+un contrato de cobranza con comision. Lo dejamos para mas adelante.
+
+---------------------------------------------------------------
+  PARTE 1 - LA PREGUNTA MAS IMPORTANTE                 URGENTE
+---------------------------------------------------------------
+
+Hoy usted es la unica que puede confirmar los pagos. Eso significa
+que si usted no esta, o esta ocupada, la cocina no recibe ningun
+pedido y el restaurante se para.
+
+La idea que estamos evaluando: dejar un celular en el local con su
+app de banca movil abierta, para que una cajera de confianza pueda
+ver los pagos que entran y confirmar los pedidos.
+
+La cajera NO podria sacar plata ni transferir: solo mirar que entro
+y marcar el pedido. Pero igual hay que decidir esto con cuidado.
+
+PREGUNTA 1
+Acepta que una empleada vea los movimientos de su cuenta?
+Es decir, que vea cuanta plata le entra en el dia.
+
+   [ ] Si, con una persona de confianza
+   [ ] No, prefiero confirmar yo sola todos los pagos
+   [ ] Depende, quiero conversarlo
+
+   Si la respuesta es NO: el sistema funciona igual, pero usted
+   sigue siendo la unica que puede confirmar, y cuando no este
+   la cocina no va a recibir pedidos. Es una decision valida,
+   solo hay que saberlo.
+
+PREGUNTA 2
+Pregunte en su banco: le pueden dar un acceso que solo sirva para
+VER los movimientos, sin poder transferir ni pagar?
+
+   [ ] Si, el banco me lo da
+   [ ] No, la app es todo o nada
+   [ ] Todavia no pregunte
+
+   Esto es importante: si la app del celular prestado puede hacer
+   transferencias sin pedir clave de nuevo, la cajera tendria mas
+   poder del que queremos darle.
+
+PREGUNTA 3
+Pruebe esto en su celular, toma 2 minutos: con la app ya abierta,
+intente empezar una transferencia. Le pide clave o huella otra vez,
+o la deja seguir de largo?
+
+   [ ] Me pide clave cada vez  (bien, es mas seguro)
+   [ ] Me deja seguir sin pedir nada  (hay que buscar otra salida)
+
+   Si la deja seguir sin pedir nada, la alternativa es abrir una
+   cuenta aparte solo para los cobros, con poca plata, y que usted
+   pase el dinero a su cuenta principal al final del dia. Asi si
+   algo pasa, lo que esta en riesgo es la venta del dia y no sus
+   ahorros.
+
+PREGUNTA 4
+Cuantas personas van a estar en caja y cada cuanto cambian?
+
+   Respuesta: ______________________________________________
+
+PREGUNTA 5
+Si una cajera se va o deja de trabajar con usted, usted quiere
+poder quitarle el acceso al sistema en el momento?
+
+   [ ] Si, quiero poder bloquearla yo misma desde mi celular
+   [ ] Me alcanza con avisarle al programador
+
+PREGUNTA 6
+Quien responde si al cierre del dia falta plata y la cajera era la
+que tenia el celular? Conviene hablarlo con ella antes de empezar,
+no despues de que pase.
+
+   Respuesta: ______________________________________________
+
+---------------------------------------------------------------
+  PARTE 2 - LOS PRECIOS                                URGENTE
+---------------------------------------------------------------
+
+Decidimos que todos los precios van a ser en bolivianos enteros.
+Sin centavos. Si un plato vale 45, se cobra 45.
+
+Esto es porque cobrar 45 con 42 centavos se ve como que uno le esta
+robando al cliente, y eso rompe la confianza.
+
+Pero hay que ser honestos con lo que eso trae:
+
+Los centavos distintos servian para saber de quien era cada pago.
+Si dos clientes piden 45 bolivianos al mismo tiempo y entra un pago
+de 45 bolivianos, no hay forma de saber de cual de los dos es.
+
+Como lo vamos a resolver: con el nombre del cliente, el numero de
+pedido, y la lista de los que estan esperando en la pantalla. Casi
+siempre va a alcanzar. Cuando haya dos pedidos del mismo monto al
+mismo tiempo, la pantalla lo va a marcar en amarillo y la cajera
+tiene que preguntar el nombre antes de confirmar.
+
+PREGUNTA 7
+Esta de acuerdo con esto? Es decir, acepta que unas pocas veces al
+dia haya que preguntar el nombre para no confundir dos pagos?
+
+   [ ] Si, prefiero precios redondos aunque haya que preguntar
+   [ ] No, prefiero los centavos distintos y que nunca se confunda
+   [ ] Cuentenme la otra opcion (ver abajo)
+
+   La otra opcion: cobrar un poco MENOS en lugar de mas. El plato
+   de 45 se cobra 44.53. Sigue siendo un monto unico, pero el
+   cliente paga menos que el precio de lista, asi que se ve como
+   descuento y no como robo. El costo para usted es de hasta
+   1 boliviano por pedido. Con 300 pedidos al dia son unos
+   150 bolivianos diarios.
+
+---------------------------------------------------------------
+  PARTE 3 - EL COMPROBANTE DEL CLIENTE
+---------------------------------------------------------------
+
+Se planteo pedirle al cliente que suba la captura de su pago.
+
+Nuestra recomendacion: NO pedirlo siempre. Por dos razones.
+
+La primera es practica: el cliente pago desde su celular, y la
+captura esta en SU galeria. La tablet del local no puede entrar
+ahi. Habria que sacarle foto a la pantalla del celular, lo que
+suma pasos y hace lenta la fila.
+
+La segunda es mas importante: si en cada pedido hay una captura en
+pantalla, la cajera va a terminar confirmando mirando la captura en
+vez de mirar el banco. Porque es mas rapido y esta ahi. Y ahi se
+rompe la regla principal del sistema. El comprobante obligatorio no
+agrega seguridad, la quita.
+
+Lo que si proponemos: pedir la foto SOLO cuando hay problema. Si el
+cliente dice que pago y en el banco no aparece, o el monto no
+coincide, ahi la cajera saca la foto desde el panel y queda
+guardada en el pedido.
+
+Esa foto sirve como prueba para reclamar despues. No sirve para
+confirmar el pago en el momento.
+
+PREGUNTA 8
+Esta de acuerdo con pedir el comprobante solo cuando hay problema?
+
+   [ ] Si
+   [ ] No, quiero que siempre suban el comprobante
+   [ ] No quiero comprobantes nunca
+
+---------------------------------------------------------------
+  PARTE 4 - REGLAS DE PLATA QUE HAY QUE DECIDIR
+---------------------------------------------------------------
+
+Estas son las situaciones que van a pasar. Le proponemos una regla
+para cada una. Si le parece bien, la dejamos asi. Si no, cambiela.
+
+Lo que NO podemos hacer es dejarlas sin decidir, porque entonces
+cada persona va a resolver distinto y al cierre no va a cuadrar.
+
+REGLA 1 - El cliente pago menos de lo que debia
+(Suele pasar por error al tipear el monto)
+
+   Propuesta: si falta hasta 2 bolivianos, se le acepta igual y la
+   cajera confirma. Queda anotado quien lo acepto. Si falta mas de
+   2 bolivianos, solo usted puede autorizarlo. El cliente no
+   retira el pedido hasta completar o hasta que usted autorice.
+
+   [ ] De acuerdo
+   [ ] Cambiar el monto a: ________  bolivianos
+   [ ] Otra regla: _________________________________________
+
+REGLA 2 - El cliente pago mas de lo que debia
+
+   Propuesta: se le devuelve la diferencia en efectivo de la caja
+   chica y queda anotado. Si no hay efectivo, se le avisa y usted
+   decide.
+
+   [ ] De acuerdo
+   [ ] Prefiero que quede a favor del cliente para otra vez
+   [ ] Otra regla: _________________________________________
+
+REGLA 3 - Hay que cancelar un pedido que ya estaba pagado
+(Se acabo el plato, el cliente se fue, etc.)
+
+   Propuesta: solo usted puede cancelar un pedido ya pagado. El
+   sistema anota el motivo y queda la deuda marcada como
+   "devolucion pendiente" hasta que usted la marque como devuelta.
+   La plata se devuelve por transferencia o efectivo, como arreglen.
+
+   IMPORTANTE: cancelar en el sistema NO devuelve la plata sola.
+   La devolucion la hace una persona. El sistema solo la recuerda.
+
+   [ ] De acuerdo
+   [ ] Tambien la cajera puede cancelar
+   [ ] Otra regla: _________________________________________
+
+REGLA 4 - El pago llega tarde
+(El pedido se cancela solo a los 15 minutos si no se paga. Y el
+cliente paga a los 20.)
+
+   Propuesta: el pedido NO se revive. La cajera le hace un pedido
+   nuevo y lo confirma con ese pago. Si el cliente ya se fue, queda
+   como devolucion pendiente.
+
+   [ ] De acuerdo
+   [ ] Prefiero que se pueda revivir el pedido
+   [ ] Otra regla: _________________________________________
+
+PREGUNTA 9
+Esos 15 minutos de espera antes de cancelar le parecen bien, o
+prefiere mas o menos tiempo?
+
+   Respuesta: ________  minutos
+
+REGLA 5 - Que cuenta como "un dia" para el cierre
+
+   Propuesta: el dia va de las 5 de la manana a las 5 de la manana
+   del dia siguiente, no de medianoche a medianoche. Asi un
+   servicio de noche no queda cortado en dos. Y el pedido cuenta en
+   el dia en que se PAGO, no en el que se pidio.
+
+   [ ] De acuerdo
+   [ ] Prefiero que el corte sea a las: ________
+   [ ] Otra regla: _________________________________________
+
+REGLA 6 - Que numeros quiere ver en el cierre del dia
+
+   Propuesta: mostrarle cuatro numeros separados, no uno solo.
+
+     - Cuanto se vendio (todos los pedidos confirmados)
+     - Cuanto deberia haber entrado a la cuenta
+     - Cuanto quedo pendiente de devolver
+     - Cuantos pedidos se confirmaron con diferencia de monto
+
+   Y ademas: quien confirmo cada pago. Asi si no cuadra, usted sabe
+   a quien preguntarle.
+
+   [ ] De acuerdo
+   [ ] Quiero ver tambien: _________________________________
+
+REGLA 7 - Cocina no puede preparar un plato ya pagado
+
+   Propuesta: cocina avisa, la cajera le ofrece al cliente cambiar
+   por otro plato del mismo precio o devolverle la plata. Si elige
+   devolucion, se usa la Regla 3.
+
+   [ ] De acuerdo
+   [ ] Otra regla: _________________________________________
+
+---------------------------------------------------------------
+  PARTE 5 - QUE PUEDE Y QUE NO PUEDE HACER LA CAJERA
+---------------------------------------------------------------
+
+Le proponemos esto. Marque lo que quiera cambiar.
+
+   Confirmar un pago que coincide exacto ............. SI
+   Confirmar un pago con diferencia de monto ......... NO, solo usted
+   Cancelar un pedido ya pagado ..................... NO, solo usted
+   Marcar un pedido como entregado .................. SI
+   Cambiar precios o platos del menu ................ NO
+   Cambiar el QR de cobro ........................... NO
+   Ver el cierre del dia y cuanto se vendio ......... NO
+   Ver el historial de quien hizo que ............... NO
+   Crear o bloquear usuarios ........................ NO
+
+PREGUNTA 10
+Hay algo de esta lista que quiera cambiar?
+
+   Respuesta: ______________________________________________
+
+PREGUNTA 11
+La cajera va a usar un dispositivo propio, o va a compartir la
+tablet con usted?
+
+   [ ] Dispositivo aparte para caja
+   [ ] Comparten la misma tablet
+
+   Esto importa porque cada persona entra al sistema con una clave
+   numerica, y si comparten pantalla es facil que una vea la clave
+   de la otra.
+
+---------------------------------------------------------------
+  PARTE 6 - UN TEMA DE SEGURIDAD QUE CONVIENE NO SALTEAR
+---------------------------------------------------------------
+
+Usted y la cocina van a entrar al sistema con una clave de numeros,
+porque es lo practico con las manos ocupadas.
+
+Esa clave no protege su plata del banco. Protege el boton de
+"confirmar pago". Con esa clave alguien puede marcar como pagado el
+pedido de un amigo que no pago nada, y de la cocina sale comida
+gratis. La perdida es en platos, no en transferencias.
+
+Nuestra recomendacion: que la clave de quien confirma pagos sea de
+6 numeros en vez de 4. Con 4 numeros hay 10 mil combinaciones y
+alguien parado al lado puede ver los dedos. Con 6 son un millon.
+
+   [ ] De acuerdo, 6 numeros
+   [ ] Prefiero 4 numeros, es mas facil de recordar
+
+---------------------------------------------------------------
+  PARTE 7 - OTRAS COSAS MENORES
+---------------------------------------------------------------
+
+PREGUNTA 12
+El cliente que no tiene banca movil, como paga? Se le acepta
+efectivo? Por ahora el sistema solo contempla pago con QR.
+
+   Respuesta: ______________________________________________
+
+PREGUNTA 13
+El nombre del cliente va a ser obligatorio, o puede pedir solo con
+el numero?
+
+   [ ] Obligatorio, ayuda a identificar el pago
+   [ ] Opcional
+
+PREGUNTA 14
+Que hacemos si se corta la luz, el internet, o se cae el wifi en
+plena hora de almuerzo? Hay algun plan B, aunque sea anotar en
+papel?
+
+   Respuesta: ______________________________________________
+
+PREGUNTA 15
+Hace falta imprimir un ticket para el cliente, o alcanza con el
+numero en la pantalla?
+
+   [ ] Alcanza el numero en pantalla
+   [ ] Quiero ticket impreso
+
+PREGUNTA 16
+Las fotos de comprobantes de la Parte 3, cuanto tiempo quiere que
+se guarden? Son datos de otras personas y ocupan espacio.
+
+   Respuesta: ________  meses
+
+---------------------------------------------------------------
+  LO QUE QUEDA PARA MAS ADELANTE
+---------------------------------------------------------------
+
+Hay una solucion que arregla casi todos estos problemas de raiz: el
+QR dinamico. Es un QR distinto para cada pedido, con el monto ya
+metido adentro, y el banco le avisa al sistema cuando entra el pago.
+
+Con eso:
+  - El cliente no tipea el monto, asi que no se equivoca
+  - El pago llega atado al pedido, no hay forma de confundirlos
+  - El pedido entra a cocina solo, sin que nadie confirme nada
+  - No hace falta la cajera ni el celular prestado para esto
+
+Necesita cuenta empresa, NIT y un contrato de cobranza con el
+banco, probablemente con una comision por cada pago. Por eso queda
+para una segunda version.
+
+PREGUNTA 17
+Cuando tenga tiempo, pregunte en su banco que piden y cuanto cobran
+por el servicio de cobranza con QR. No para hacerlo ahora, sino
+para saber si vale la pena apuntar a eso.
+
+   Lo que le dijo el banco: _______________________________
+
+---------------------------------------------------------------
+  CIERRE
+---------------------------------------------------------------
+
+Lo que mas frena el trabajo son las Preguntas 1, 2, 3 y 7. Con esas
+cuatro respondidas ya se puede empezar a programar la parte de
+pedidos y cobros, que es el corazon del sistema.
+
+Las reglas de plata de la Parte 4 se pueden ir cerrando mientras se
+construye lo demas, pero tienen que estar listas antes de que el
+sistema se use con clientes reales.
+
+Nada de lo que esta en este documento esta programado todavia.
+Son decisiones, no cosas hechas.
