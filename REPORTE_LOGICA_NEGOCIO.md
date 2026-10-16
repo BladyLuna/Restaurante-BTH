@@ -60,7 +60,7 @@ El kiosco es un dispositivo autorizado, no un usuario administrador. “Sin logi
 3. Indica nombre y modalidad de consumo.
 4. Revisa y confirma. El servidor valida productos y precios y crea un pedido numerado.
 5. El pedido queda PENDIENTE_PAGO. Se muestra QR, importe exacto y número.
-6. El cliente realiza el pago desde su banco o billetera compatible, fuera del sistema.
+6. El cliente realiza el pago desde su banco o billetera compatible, fuera del sistema.una
 7. La dueña observa el abono en SU app bancaria, localiza el pedido y confirma.
 8. El pedido pasa a PAGADO y aparece como trabajo autorizado en cocina.
 9. Cocina pasa a EN_PREPARACION, luego LISTO.

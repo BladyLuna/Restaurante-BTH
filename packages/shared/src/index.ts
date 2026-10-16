@@ -27,3 +27,15 @@ export {
 
 export * as Result from './result/result.js';
 export type { Result as ResultType, Ok, Err } from './result/result.js';
+
+export * as CatalogSchemas from './schemas/catalog.js';
+export type {
+  CrearCategoriaDto,
+  ActualizarCategoriaDto,
+  CrearProductoDto,
+  ActualizarProductoDto,
+  CrearVarianteDto,
+  ActualizarVarianteDto,
+  CambiarActivoDto,
+  ReordenarDto,
+} from './schemas/catalog.js';

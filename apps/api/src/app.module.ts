@@ -5,6 +5,7 @@ import { InfraModule } from './infra/infra.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AuthGuard } from './auth/auth.guard.js';
 import { LocationsModule } from './locations/locations.module.js';
+import { CatalogModule } from './catalog/catalog.module.js';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { LocationsModule } from './locations/locations.module.js';
     InfraModule,
     AuthModule,
     LocationsModule,
+    CatalogModule,
   ],
   providers: [
     // AuthGuard global: todo endpoint exige sesión salvo los marcados
