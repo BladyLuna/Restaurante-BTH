@@ -1,0 +1,30 @@
+{
+  "name": "@restaurante/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "db:up": "docker compose -f ../../docker-compose.yml up -d",
+    "db:down": "docker compose -f ../../docker-compose.yml down",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "seed": "tsx prisma/seed.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@restaurante/shared": "*",
+    "argon2": "^0.41.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

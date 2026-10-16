@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: restaurante_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: restaurante
+      POSTGRES_PASSWORD: restaurante_dev
+      POSTGRES_DB: restaurante
+      # Zona horaria de Bolivia: importa para el corte de jornada de las 05:00
+      # (PLAN 5e regla 5). Si el contenedor corre en UTC, el corte se mueve.
+      TZ: America/La_Paz
+      PGTZ: America/La_Paz
+    ports:
+      # 5434 en el host: 5432 es el default y 5433 ya lo usa otro proyecto.
+      - "5434:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U restaurante -d restaurante"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db_data:

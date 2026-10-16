@@ -1,0 +1,468 @@
+// RQ-106 — Esquema completo
+//
+// Fuente: PLAN §4 (modelo de datos), MODULOS §0 (locationId), D-04, D-08, D-09.
+//
+// Cuidados que vienen de decisiones cerradas:
+//   - Order NO tiene sufijoCentavos. Fue derogado (D-04). Si aparece, es que se
+//     copió de una versión vieja del PLAN.
+//   - AuditLog.targetUserId existe aunque B13 todavía no se construya: es lo
+//     que permite auditar permisos (REPORTE C-02).
+//   - Refund y PaymentProof son entidades nuevas (D-09, D-05).
+//   - Nunca borrados físicos: activo/archivado en Product, PaymentQr y User.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Rol {
+  ADMIN
+  CAJA
+  COCINA
+}
+
+enum EstadoPedido {
+  PENDIENTE_PAGO
+  PAGADO
+  EN_PREPARACION
+  LISTO
+  ENTREGADO
+  CANCELADO
+}
+
+enum TipoConsumo {
+  COMER_AQUI
+  PARA_LLEVAR
+}
+
+enum EstadoRefund {
+  PENDIENTE
+  CERRADO
+}
+
+/// Acciones auditables. Fuente: PLAN §5c, REPORTE C-02.
+/// Las de permisos existen desde ya aunque B13 venga después.
+enum AccionAuditada {
+  PAGO_CONFIRMADO
+  PAGO_CONFIRMADO_CON_DIFERENCIA
+  PEDIDO_CANCELADO
+  PEDIDO_ENTREGADO
+  PRECIO_CAMBIADO
+  PRODUCTO_ACTIVADO
+  PRODUCTO_DESACTIVADO
+  QR_ACTIVADO
+  QR_ARCHIVADO
+  QR_SUBIDO
+  COMPROBANTE_ADJUNTADO
+  REFUND_CREADO
+  REFUND_CERRADO
+  USUARIO_CREADO
+  PERMISO_OTORGADO
+  PERMISO_REVOCADO
+  USUARIO_DESACTIVADO
+  PIN_RESETEADO
+  CONFIGURACION_CAMBIADA
+  LOGIN_FALLIDO
+  LOGIN_BLOQUEADO
+}
+
+// ---------------------------------------------------------------------------
+// Local — MODULOS §0
+// ---------------------------------------------------------------------------
+
+/// Una sola fila sembrada. No construimos multi-tenancy, pero no nos cerramos
+/// la puerta: el día que haya un segundo local el trabajo es UI y reportes, no
+/// una migración de esquema con datos en producción.
+model Location {
+  id        String   @id @default(cuid())
+  nombre    String
+  activo    Boolean  @default(true)
+  creadoEn  DateTime @default(now())
+
+  orders     Order[]
+  paymentQrs PaymentQr[]
+  users      User[]
+  counters   OrderCounter[]
+
+  @@map("locations")
+}
+
+// ---------------------------------------------------------------------------
+// Catálogo
+// ---------------------------------------------------------------------------
+
+model Category {
+  id       String  @id @default(cuid())
+  nombre   String
+  orden    Int     @default(0)
+  activo   Boolean @default(true)
+  creadoEn DateTime @default(now())
+
+  products Product[]
+
+  @@index([activo, orden])
+  @@map("categories")
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  categoryId  String
+  nombre      String
+  descripcion String?
+  /// Centavos enteros, múltiplo de 100 (D-04). Validado en la app y por CHECK
+  /// en la migración.
+  precioBase  Int
+  imagenUrl   String?
+  activo      Boolean @default(true)
+  orden       Int     @default(0)
+  /// Si es false, el kiosco agrega el plato con un toque usando precioBase.
+  /// Si es true, muestra los tamaños. Fuente: PLAN §4.
+  tieneVariantes Boolean @default(false)
+  creadoEn    DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  category Category         @relation(fields: [categoryId], references: [id])
+  variants ProductVariant[]
+  items    OrderItem[]
+
+  @@index([categoryId, activo, orden])
+  @@map("products")
+}
+
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId String
+  /// "500ml", "Grande", etc.
+  nombre    String
+  /// Centavos enteros, múltiplo de 100 (D-04).
+  precio    Int
+  activo    Boolean @default(true)
+  orden     Int     @default(0)
+  creadoEn  DateTime @default(now())
+
+  product Product     @relation(fields: [productId], references: [id])
+  items   OrderItem[]
+
+  @@index([productId, activo, orden])
+  @@map("product_variants")
+}
+
+// ---------------------------------------------------------------------------
+// Cobro
+// ---------------------------------------------------------------------------
+
+/// QR de cobro. Fuente: PLAN §5b, D-08.
+///
+/// Reglas que el servicio debe hacer cumplir:
+///   - Un solo activo por local.
+///   - No archivar el único activo: el kiosco no podría cobrar.
+///   - La imagen de un QR que ya tiene pedidos es INMUTABLE (D-08). Cambiarla
+///     crea una fila nueva y archiva la anterior; si se editara en el lugar,
+///     los pedidos viejos quedarían apuntando a una imagen que no es la que se
+///     les mostró y el cuadre por cuenta dejaría de ser auditable.
+model PaymentQr {
+  id         String  @id @default(cuid())
+  locationId String
+  /// Texto libre de la dueña, solo para distinguirlos en el panel. El sistema
+  /// no lo interpreta (PLAN §5b).
+  etiqueta   String
+  imagenUrl  String
+  activo     Boolean @default(false)
+  archivado  Boolean @default(false)
+  creadoEn   DateTime @default(now())
+
+  location Location @relation(fields: [locationId], references: [id])
+  orders   Order[]
+
+  @@index([locationId, activo, archivado])
+  @@map("payment_qrs")
+}
+
+// ---------------------------------------------------------------------------
+// Usuarios
+// ---------------------------------------------------------------------------
+
+/// Fuente: PLAN §6, D-06.
+///
+/// Un PIN por persona, nunca compartido: sin eso el AuditLog no puede atribuir
+/// una confirmación a nadie y deja de ser prueba.
+/// Nunca se borra: activo = false. Un usuario borrado dejaría AuditLog y
+/// Order.confirmadoPorId huérfanos.
+model User {
+  id         String  @id @default(cuid())
+  locationId String
+  nombre     String
+  rol        Rol
+  /// Hash argon2. El PIN en claro no se guarda ni se puede recuperar.
+  pinHash    String
+  activo     Boolean @default(true)
+  creadoEn   DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  location          Location  @relation(fields: [locationId], references: [id])
+  ordersConfirmadas Order[]   @relation("confirmadoPor")
+  ordersCanceladas  Order[]   @relation("canceladoPor")
+  auditoria         AuditLog[] @relation("actor")
+  auditoriaRecibida AuditLog[] @relation("afectado")
+  refundsAutorizados Refund[] @relation("autorizadoPor")
+  refundsCerrados    Refund[] @relation("cerradoPor")
+  comprobantes       PaymentProof[]
+
+  @@index([locationId, activo])
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Pedidos
+// ---------------------------------------------------------------------------
+
+/// Fuente: PLAN §§4, 5, 5b; D-04.
+///
+/// NO tiene sufijoCentavos: derogado (D-04). total = subtotal. Se mantienen los
+/// dos campos para que el cierre pueda distinguir venta de ajuste si alguna vez
+/// vuelve a haber uno.
+model Order {
+  id            String       @id @default(cuid())
+  locationId    String
+  /// Número visible al cliente, único por (fecha, locationId). Se reinicia en
+  /// #1 cada jornada (PLAN §4).
+  numero        Int
+  /// Jornada a la que pertenece. Corte 05:00 (PLAN §5e regla 5, propuesto).
+  fecha         DateTime     @db.Date
+  nombreCliente String?
+  tipo          TipoConsumo
+  estado        EstadoPedido @default(PENDIENTE_PAGO)
+
+  /// Centavos enteros, múltiplos de 100 (D-04).
+  subtotal      Int
+  total         Int
+
+  /// El QR que se le mostró a ESTE pedido. Permite que el cuadre separe los
+  /// totales por cuenta, indispensable si cambió de QR a media jornada
+  /// (PLAN §5b).
+  paymentQrId   String?
+
+  /// UUID del intento de creación, generado por el cliente. Si la respuesta se
+  /// pierde por WiFi y la tablet reintenta, el servidor reconoce el UUID y
+  /// devuelve el pedido ya creado en lugar de crear un segundo
+  /// (ARQUITECTURA §7).
+  intentoUuid   String       @unique
+
+  creadoEn      DateTime     @default(now())
+  pagadoEn      DateTime?
+  /// Quién confirmó el pago. Con dos personas habilitadas (dueña y caja), es el
+  /// dato que permite responder "quién confirmó qué" en el cierre (REPORTE C-03).
+  confirmadoPorId String?
+  /// Monto que el operador declaró haber recibido, cuando difiere del total.
+  /// Solo ADMIN puede confirmar con diferencia (D-02).
+  montoRecibido Int?
+
+  canceladoEn     DateTime?
+  canceladoPorId  String?
+  canceladoMotivo String?
+
+  location      Location   @relation(fields: [locationId], references: [id])
+  paymentQr     PaymentQr? @relation(fields: [paymentQrId], references: [id])
+  confirmadoPor User?      @relation("confirmadoPor", fields: [confirmadoPorId], references: [id])
+  canceladoPor  User?      @relation("canceladoPor", fields: [canceladoPorId], references: [id])
+
+  items      OrderItem[]
+  auditoria  AuditLog[]
+  refunds    Refund[]
+  comprobantes PaymentProof[]
+
+  @@unique([locationId, fecha, numero])
+  /// Índice del panel de confirmación: busca pedidos abiertos por monto
+  /// (PLAN §5b). También sostiene la detección de montos ambiguos (R-01).
+  @@index([locationId, estado, total])
+  @@index([locationId, fecha, estado])
+  @@index([estado, creadoEn])
+  @@map("orders")
+}
+
+/// Fuente: PLAN §4 "snapshot de precios".
+///
+/// Guarda nombre y precio al momento del pedido. Si la dueña cambia el precio
+/// de un plato a mitad del día, los pedidos ya hechos no se alteran. Sin esto,
+/// el reporte de ventas se corrompe cada vez que toca un precio.
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  variantId String?
+  cantidad  Int
+  notas     String?
+
+  nombreSnapshot         String
+  /// Centavos enteros, múltiplo de 100 (D-04).
+  precioUnitarioSnapshot Int
+
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+/// Numeración diaria. Fuente: PLAN §4.
+/// SELECT ... FOR UPDATE dentro de la transacción que crea el pedido garantiza
+/// números consecutivos sin huecos ni duplicados.
+model OrderCounter {
+  locationId   String
+  fecha        DateTime @db.Date
+  ultimoNumero Int      @default(0)
+
+  location Location @relation(fields: [locationId], references: [id])
+
+  @@id([locationId, fecha])
+  @@map("order_counters")
+}
+
+// ---------------------------------------------------------------------------
+// Devoluciones — D-09
+// ---------------------------------------------------------------------------
+
+/// Fuente: PLAN §5e regla 3, D-09, REPORTE H05.
+///
+/// Cancelar un pedido pagado NO devuelve dinero. Crea esta obligación
+/// pendiente, que una persona cierra cuando efectivamente devolvió la plata.
+/// Sin esta tabla, el cierre presentaría como venta vigente un dinero que hay
+/// que devolver y el cuadre nunca daría.
+///
+/// El sistema recuerda la deuda, no mueve plata.
+model Refund {
+  id       String       @id @default(cuid())
+  orderId  String
+  /// Centavos enteros, múltiplo de 100.
+  monto    Int
+  motivo   String
+  estado   EstadoRefund @default(PENDIENTE)
+
+  autorizadoPorId String
+  cerradoPorId    String?
+  creadoEn        DateTime  @default(now())
+  cerradoEn       DateTime?
+  /// Cómo se devolvió: efectivo, transferencia. Texto libre para el registro.
+  formaDevolucion String?
+
+  order         Order @relation(fields: [orderId], references: [id])
+  autorizadoPor User  @relation("autorizadoPor", fields: [autorizadoPorId], references: [id])
+  cerradoPor    User? @relation("cerradoPor", fields: [cerradoPorId], references: [id])
+
+  @@index([estado, creadoEn])
+  @@index([orderId])
+  @@map("refunds")
+}
+
+// ---------------------------------------------------------------------------
+// Comprobante de conflicto — D-05
+// ---------------------------------------------------------------------------
+
+/// Fuente: PLAN §5f, D-05.
+///
+/// Se carga SOLO ante conflicto, por CAJA o ADMIN, fotografiando la pantalla
+/// del cliente. Es evidencia para una reclamación posterior.
+///
+/// NO AUTORIZA LA CONFIRMACIÓN DE UN PAGO. Si el flujo normal pidiera
+/// comprobante, quien confirma terminaría mirando la captura en vez del
+/// extracto bancario, y eso degrada el control en lugar de reforzarlo.
+model PaymentProof {
+  id          String   @id @default(cuid())
+  orderId     String
+  imagenUrl   String
+  subidoPorId String
+  /// Por qué se adjuntó: el cliente dice que pagó y no aparece, monto distinto.
+  motivo      String?
+  creadoEn    DateTime @default(now())
+
+  order     Order @relation(fields: [orderId], references: [id])
+  subidoPor User  @relation(fields: [subidoPorId], references: [id])
+
+  @@index([orderId])
+  @@map("payment_proofs")
+}
+
+// ---------------------------------------------------------------------------
+// Auditoría — D-07
+// ---------------------------------------------------------------------------
+
+/// Fuente: PLAN §5c, D-07, REPORTE C-02 y H06.
+///
+/// La fila de una operación financiera se escribe DENTRO de la misma
+/// transacción que el cambio de estado. No por evento post-commit: si el
+/// servidor se reinicia en esa ventana, queda un cobro sin autoría y el log
+/// deja de ser prueba. Con dos personas habilitadas para confirmar, ese es
+/// precisamente el dato que no se puede perder.
+model AuditLog {
+  id      String         @id @default(cuid())
+  userId  String?
+  accion  AccionAuditada
+
+  orderId   String?
+  productId String?
+  /// Usuario AFECTADO por la acción, distinto del que la ejecuta. Necesario
+  /// para auditar permisos: otorgar o revocar la capacidad de confirmar cobros
+  /// es un evento financiero de la misma categoría que cambiar el QR
+  /// (REPORTE C-02).
+  targetUserId String?
+
+  /// Centavos. Para confirmaciones con diferencia (PLAN §5b).
+  montoEsperado Int?
+  montoRecibido Int?
+
+  /// Contexto adicional: valores anteriores y nuevos, IP, motivo.
+  detalle Json?
+  /// IP del cliente, cuando aplica.
+  ip      String?
+
+  creadoEn DateTime @default(now())
+
+  user       User?  @relation("actor", fields: [userId], references: [id])
+  targetUser User?  @relation("afectado", fields: [targetUserId], references: [id])
+  order      Order? @relation(fields: [orderId], references: [id])
+
+  @@index([creadoEn])
+  @@index([userId, creadoEn])
+  @@index([orderId])
+  @@index([accion, creadoEn])
+  @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Configuración
+// ---------------------------------------------------------------------------
+
+/// Fuente: ARQUITECTURA §1 — la configuración vive en tabla, no en .env, para
+/// que la dueña pueda cambiarla sin reiniciar nada y para no cerrarse la puerta
+/// a multi-local.
+model Setting {
+  clave         String   @id
+  valor         Json
+  actualizadoEn DateTime @updatedAt
+
+  @@map("settings")
+}
+
+/// Control de intentos de login. Fuente: PLAN §6, D-06.
+/// El rate limit se adelantó de O3 (sprint final) a B3: un PIN de 6 dígitos son
+/// un millón de combinaciones, pero sin límite de intentos un script las prueba
+/// igual.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  /// Identificador del origen: IP o userId cuando se conoce.
+  origen    String
+  exitoso   Boolean
+  creadoEn  DateTime @default(now())
+
+  @@index([origen, creadoEn])
+  @@map("login_attempts")
+}
