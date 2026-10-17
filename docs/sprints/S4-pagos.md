@@ -7,20 +7,25 @@
   - B10 `audit` — 2,5 j (2 base, más `targetUserId` y acciones de permisos 0,5 j)
   - B11 `realtime` — 3 j
   - Reserva de riesgo — 2,5 j
-**Estado:** BLOQUEADO. Es el sprint de más riesgo del proyecto.
+**Estado:** **LISTO PARA EJECUTAR** desde el 2026-10-17. Es el sprint de más
+riesgo del proyecto.
 
-Bloqueos activos:
-- Acceso de consulta bancaria para quien confirma (`PREGUNTAS` 1 a 3). Sin eso,
-  la confirmación se haría contra la captura del cliente, que es el vector
-  "captura reciclada" de `PLAN §5b`. **Es el único bloqueo real que queda.**
-- Políticas 2, 3 y 7 de `PLAN §5e` (pagó de más, cancelar pagado, plato no
-  preparable). Están redactadas como propuesta; falta aprobación.
-
-Desbloqueado el 2026-10-17:
+Bloqueos cerrados el 2026-10-17:
+- Acceso de consulta bancaria para CAJA → **D-15**. La dueña aceptó que una
+  cajera de confianza vea los movimientos y confirme. Era el bloqueo del camino
+  crítico completo.
+- Riesgo del celular prestado → **D-16**. El QR apunta a una cuenta separada con
+  saldo bajo; la dueña transfiere lo recaudado al cierre. Hace irrelevante si la
+  app puede transferir sin pedir clave.
 - Regla 1 → **D-11**: toda diferencia la autoriza ADMIN, sin umbral.
 - Regla 4 → **D-12**: el pedido vencido no se revive, se crea uno nuevo.
 - Regla 5 → **D-14**: el día va de 5:00 a 5:00 y cuenta por fecha de pago.
 - Nombre del cliente → **D-13**: obligatorio, es lo que permite desempatar.
+- Efectivo → **D-17**: fuera del MVP. B8 solo maneja pago con QR.
+
+Sigue pendiente, pero **no bloquea**: políticas 2, 3 y 7 de `PLAN §5e` (pagó de
+más, cancelar pagado, plato no preparable). Afectan el detalle de `RQ-409`
+(`Refund`) y el cierre de S9, no la confirmación de pago.
 
 ---
 
@@ -462,6 +467,9 @@ cuando el WiFi hipa. Y el WiFi del local va a hipar.
 
 - **Webhooks y QR dinámico** (D-01). Diferido a v2: requiere NIT, cuenta
   empresa y contrato de cobranza.
+- **Pago en efectivo** (D-17). Diferido a v2. El MVP solo maneja QR. Cuando
+  entre, trae consigo el arqueo de caja (conteo de apertura y cierre) y el
+  cierre separado por medio de pago.
 - **Pool de sufijos de centavos** (D-04). Derogado.
 - **Conciliación automática** banco↔pedido. No hay integración bancaria; el
   emparejamiento es manual por diseño.
@@ -489,11 +497,20 @@ el fraude de monto (R-01). Si se elimina, el sistema vuelve a ser confirmable a
 ciegas. Mitigación: que el diálogo muestre información que realmente ayude a
 decidir — hora, nombre, ítems — en vez de dos filas idénticas.
 
-**Que se confirme contra la captura del cliente.** Si quien confirma no tiene
-acceso de consulta bancaria, va a confirmar mirando lo que el cliente le muestra,
-porque es lo único que tiene. Eso es exactamente el vector "captura reciclada".
-No es un riesgo técnico: es el bloqueo de este sprint. Mitigación: no empezar B8
-hasta que esté resuelto el acceso bancario.
+**Que se confirme contra la captura del cliente.** Resuelto en lo organizativo por
+D-15: quien confirma tiene acceso de consulta bancaria, así que no necesita
+mirar la captura. Pero el riesgo no desaparece del todo: con fila de gente, mirar
+la pantalla del cliente sigue siendo más rápido que abrir la app del banco.
+Mitigación en el diseño de F4 (S7): el diálogo de confirmación pregunta
+"¿recibiste Bs X de este pedido?" y nunca ofrece un comprobante como evidencia
+suficiente (D-05, `RQ-410`).
+
+**Que la cuenta de cobros acumule saldo.** D-16 acota el daño del celular
+prestado suponiendo que la dueña transfiere lo recaudado al cierre de cada
+jornada. Si no lo hace, la cuenta junta plata y el beneficio desaparece. Es un
+hábito, no un control del sistema: no hay nada en el código que lo fuerce.
+Mitigación: incluirlo como paso del procedimiento de cierre en el manual de
+operación (S10).
 
 **Que el emparejamiento manual no escale en hora pico.** Sin sufijo y sin
 integración, la persona que confirma tiene que leer el extracto, buscar el monto

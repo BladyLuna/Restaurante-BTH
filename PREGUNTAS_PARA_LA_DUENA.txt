@@ -66,14 +66,17 @@ PREGUNTA 1
 Acepta que una empleada vea los movimientos de su cuenta?
 Es decir, que vea cuanta plata le entra en el dia.
 
-   [ ] Si, con una persona de confianza
+   [X] Si, con una persona de confianza
    [ ] No, prefiero confirmar yo sola todos los pagos
    [ ] Depende, quiero conversarlo
 
-   Si la respuesta es NO: el sistema funciona igual, pero usted
-   sigue siendo la unica que puede confirmar, y cuando no este
-   la cocina no va a recibir pedidos. Es una decision valida,
-   solo hay que saberlo.
+       >>> DECIDIDO 17/10/2026. Ver D-15.
+       Con esto se desbloquea la parte mas importante del sistema.
+       Ahora se puede programar el cobro.
+       La cajera solo puede confirmar que entro un pago exacto. No
+       puede cancelar un pedido ya pagado, ni aceptar un pago con
+       monto distinto, ni ver el cierre del dia. Cada confirmacion
+       queda con su nombre y la hora.
 
 PREGUNTA 2
 Pregunte en su banco: le pueden dar un acceso que solo sirva para
@@ -83,9 +86,18 @@ VER los movimientos, sin poder transferir ni pagar?
    [ ] No, la app es todo o nada
    [ ] Todavia no pregunte
 
-   Esto es importante: si la app del celular prestado puede hacer
-   transferencias sin pedir clave de nuevo, la cajera tendria mas
-   poder del que queremos darle.
+       >>> RESUELTO DE OTRA FORMA 17/10/2026. Ver D-16.
+       Ya no hace falta averiguarlo, porque se decidio algo mejor:
+
+       EL QR VA A APUNTAR A UNA CUENTA APARTE, solo para los cobros
+       del restaurante, con poca plata. Al cerrar el dia usted pasa
+       lo recaudado a su cuenta de siempre.
+
+       Asi, si el celular prestado puede transferir, lo que esta en
+       riesgo es la venta del dia y no sus ahorros.
+
+       Lo unico que hay que hacer: abrir esa cuenta en el banco, una
+       sola vez. No cambia nada del sistema.
 
 PREGUNTA 3
 Pruebe esto en su celular, toma 2 minutos: con la app ya abierta,
@@ -95,11 +107,14 @@ o la deja seguir de largo?
    [ ] Me pide clave cada vez  (bien, es mas seguro)
    [ ] Me deja seguir sin pedir nada  (hay que buscar otra salida)
 
-   Si la deja seguir sin pedir nada, la alternativa es abrir una
-   cuenta aparte solo para los cobros, con poca plata, y que usted
-   pase el dinero a su cuenta principal al final del dia. Asi si
-   algo pasa, lo que esta en riesgo es la venta del dia y no sus
-   ahorros.
+       >>> YA NO HACE FALTA PROBARLO. Ver D-16.
+       Con la cuenta aparte de la pregunta 2, da igual si la app
+       pide clave o no. El riesgo quedo acotado a lo del dia.
+
+       Un recordatorio de todos modos: esa plata se mueve POR FUERA
+       del sistema. Ni la clave numerica, ni los permisos, ni el
+       historial del sistema la pueden proteger. Por eso la solucion
+       es tener poca plata ahi, no confiar en la app.
 
 PREGUNTA 4
 Cuantas personas van a estar en caja y cada cuanto cambian?
@@ -403,22 +418,24 @@ PREGUNTA 12
 El cliente que no tiene banca movil, como paga? Se le acepta
 efectivo? Por ahora el sistema solo contempla pago con QR.
 
-   Respuesta: ______________________________________________
+   Respuesta: Por ahora solo QR. El efectivo se maneja en papel,
+              como hasta ahora, y entra al sistema en la segunda
+              version.
 
-   >>> SIN CERRAR. Conversado el 17/10/2026, falta decidir.
-   La respuesta tentativa fue "se acepta efectivo y la cajera lo
-   registra en el sistema", pero eso choca con la regla que usted
-   misma puso: la cajera no mueve plata ni retira.
-   Si la cajera recibe efectivo, hay que resolver antes:
-     - el QR se verifica contra el banco; el efectivo no se
-       verifica contra nada
-     - aparece la caja chica: cuanto hay al abrir, cuanto al
-       cerrar, quien la cuenta
-     - si al cierre falta plata en efectivo, el historial no puede
-       probar quien la tomo
-     - el cierre tendria que separar venta en QR de venta en
-       efectivo
-   No se programa nada de efectivo hasta que esto se decida.
+   >>> DECIDIDO 17/10/2026. Ver D-17.
+   Motivo: todo el sistema se apoya en que cada venta se puede
+   comprobar contra un movimiento del banco. El efectivo no se
+   puede comprobar contra nada.
+   Para aceptarlo bien hay que agregar: contar la caja al abrir y
+   al cerrar, anotar quien conto, y un cierre con dos columnas
+   separadas. Son unos 4 dias de trabajo.
+   Ademas choca con lo que usted dijo: la cajera no mueve plata.
+   Recibir efectivo es mover plata.
+
+   Para cuando se haga: el conteo de caja NO es para desconfiar de
+   la cajera, es para protegerla. Sin conteo de apertura y cierre,
+   el dia que falten 50 bolivianos no hay forma de demostrar que
+   no fue ella.
 
 PREGUNTA 13
 El nombre del cliente va a ser obligatorio, o puede pedir solo con
@@ -485,12 +502,16 @@ para saber si vale la pena apuntar a eso.
   CIERRE - ESTADO AL 17 DE OCTUBRE DE 2026
 ---------------------------------------------------------------
 
-YA DECIDIDO (10 de 24 puntos)
+YA DECIDIDO (14 de 24 puntos)
 
+  Pregunta 1    Una cajera de confianza puede confirmar pagos: SI
+  Pregunta 2    Cuenta aparte solo para cobros: SI
+  Pregunta 3    Ya no hace falta, resuelto con la cuenta aparte
   Pregunta 5    Quitarle el acceso a una cajera en el momento: SI
   Pregunta 7    Precios en bolivianos enteros, sin centavos: SI
   Pregunta 8    Comprobante solo cuando hay problema: SI
   Pregunta 11   Dispositivo aparte para caja: SI
+  Pregunta 12   Efectivo: solo QR por ahora, efectivo en v2
   Pregunta 13   Nombre del cliente obligatorio: SI
   Pregunta 17   QR dinamico: queda para la segunda version
   Regla 1       Cualquier diferencia de monto la autoriza la duena
@@ -499,26 +520,17 @@ YA DECIDIDO (10 de 24 puntos)
   Parte 6       Clave de 6 numeros para quien confirma pagos
 
 
-LO QUE FRENA EL TRABAJO AHORA MISMO
+YA NO HAY NADA QUE FRENE LA PROGRAMACION
 
-  Preguntas 1, 2 y 3 - LA CUENTA DEL BANCO
+  Con la pregunta 1 respondida se desbloqueo la parte del cobro,
+  que era el corazon del sistema y lo que faltaba para poder
+  seguir. Se puede programar todo.
 
-  Son las tres que no se pueden responder sin usted, y sin ellas
-  no se puede programar la parte de cobros.
+  LO UNICO QUE USTED TIENE QUE HACER:
 
-  Son media hora con el celular en la mano:
-
-    Pregunta 1. Decidir si acepta que una empleada vea cuanta
-                plata le entra en el dia.
-    Pregunta 2. Llamar al banco y preguntar si le pueden dar un
-                acceso que solo sirva para VER movimientos.
-    Pregunta 3. Abrir su app del banco e intentar empezar una
-                transferencia. Ver si le pide clave otra vez o si
-                la deja seguir de largo.
-
-  Si la respuesta a la 1 es NO, el sistema funciona igual, pero
-  usted va a ser la unica que puede confirmar pagos y cuando no
-  este, la cocina no va a recibir pedidos.
+    Abrir en el banco una cuenta aparte para los cobros del
+    restaurante. Una sola vez. El QR del local va a apuntar ahi.
+    Al cerrar el dia, pasa lo recaudado a su cuenta de siempre.
 
 
 LO QUE SE PUEDE IR CERRANDO SIN APURO
@@ -531,8 +543,6 @@ LO QUE SE PUEDE IR CERRANDO SIN APURO
   Pregunta 6    Quien responde si al cierre falta plata
   Pregunta 9    Si los 15 minutos de espera estan bien
   Pregunta 10   Si quiere cambiar algo de los permisos de la cajera
-  Pregunta 12   EL EFECTIVO - ver la nota, es mas complicado de lo
-                que parece
   Pregunta 14   Plan B si se corta la luz o el internet
   Pregunta 15   Si hace falta ticket impreso
   Pregunta 16   Cuanto tiempo guardar las fotos de comprobantes

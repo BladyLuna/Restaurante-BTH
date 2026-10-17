@@ -432,32 +432,128 @@ B12 (S9).
 
 ---
 
+## D-15 — CAJA confirma pagos con acceso de consulta bancaria
+
+**Fecha.** 2026-10-17
+**Estado.** Cerrada. Responde `PREGUNTAS` 1, 2 y 3. **Desbloquea B8.**
+
+**Qué se decidió.** La dueña acepta que una cajera de confianza vea los
+movimientos de la cuenta de cobros desde un celular dejado en el local, y
+confirme los pedidos en el sistema.
+
+**Qué se descartó.** Que la dueña sea la única con permiso de confirmar. Era una
+opción válida y el sistema la soporta, pero significaba que la cocina no recibe
+pedidos cuando ella no está.
+
+**Por qué importa.** Es el bloqueo que tenía detenido todo el camino crítico
+(`B7 → B8 → F4`). Sin alguien más que pueda confirmar, el restaurante se para
+cuando la dueña no está, y el sistema no resuelve el problema que vino a
+resolver.
+
+**Lo que esto NO cambia.** CAJA sigue sin poder mover plata: no retira, no
+transfiere, no cancela pedidos pagados, no confirma con diferencia de monto
+(D-11). Su permiso es confirmar que un pago exacto entró. La autoría queda en
+`Order.confirmadoPorId` y en `AuditLog`, dentro de la misma transacción (D-07).
+
+**Fuente.** `PREGUNTAS` Parte 1, `PLAN §5g`, D-02, decisión del usuario
+2026-10-17.
+
+---
+
+## D-16 — Cuenta bancaria separada para los cobros
+
+**Fecha.** 2026-10-17
+**Estado.** Cerrada. Hace irrelevantes las `PREGUNTAS` 2 y 3.
+
+**Qué se decidió.** El QR de cobro apunta a una **cuenta aparte**, distinta de la
+cuenta principal de la dueña, con saldo bajo. Al cierre de cada jornada ella
+transfiere lo recaudado a su cuenta principal.
+
+**Qué se descartó.** Usar la cuenta principal y confiar en que la app del celular
+prestado pida clave para transferir.
+
+**Por qué.** Las preguntas 2 y 3 del documento investigaban si el banco da un
+acceso de solo lectura, y si la app pide autenticación para transferir. El
+usuario respondió que no importa y que esa parte sea flexible. **No se puede
+dejar así**: si la app del celular prestado transfiere sin pedir clave, la cajera
+no tiene acceso a "ver los movimientos" sino a toda la cuenta, y eso ocurre
+**por fuera del sistema** — ni el PIN, ni los guards, ni la auditoría lo alcanzan.
+El log diría "María confirmó el pedido #47" mientras una transferencia sale del
+banco sin dejar rastro en la aplicación.
+
+La cuenta separada vuelve la pregunta irrelevante en lugar de ignorarla: si la
+app puede transferir, lo que está expuesto es la recaudación del día, no los
+ahorros. Es contención de daño, no prevención, y es lo correcto cuando la
+prevención depende de algo que no controlamos.
+
+**Qué implica.** Nada en el código: el sistema no se conecta al banco (D-01) y ya
+soporta varios QR con uno activo (`PLAN §5b`). Es una gestión que la dueña hace
+en el banco, una vez. Lo que sí cambia es el procedimiento de cierre: aparece un
+paso de "transferir lo recaudado", que conviene documentar en S10 junto con el
+manual de operación.
+
+**Riesgo residual.** Si la dueña no hace la transferencia diaria, la cuenta de
+cobros acumula y el beneficio desaparece. Es un hábito, no un control del
+sistema.
+
+**Fuente.** `PREGUNTAS` Parte 1 preguntas 2 y 3, decisión del usuario 2026-10-17.
+
+---
+
+## D-17 — El efectivo queda fuera del MVP
+
+**Fecha.** 2026-10-17
+**Estado.** Cerrada. Responde `PREGUNTA 12`. Diferida a v2.
+
+**Qué se decidió.** El MVP solo maneja pago con QR. El cliente que no tiene banca
+móvil se atiende por fuera del sistema, en papel, como hasta ahora.
+
+**Qué se descartó.** Registrar ventas en efectivo en esta versión, que fue la
+respuesta inicial del usuario ("recibir plata en mano y registrar al sistema").
+
+**Por qué.** El efectivo rompe la propiedad que sostiene todo el diseño: **cada
+venta se verifica contra un movimiento bancario**. El efectivo no se verifica
+contra nada. Agregarlo exige construir lo que hoy no existe:
+
+- Registro de venta en efectivo, sin contraparte verificable.
+- Arqueo de caja: conteo de apertura, conteo de cierre, y quién contó.
+- Cierre del día separado por medio de pago, porque cuadran distinto.
+- Un faltante de efectivo que el `AuditLog` no puede atribuir a nadie.
+
+Son unas 4 jornadas, y contradicen la restricción que el usuario puso antes:
+*"el cajero no puede mover plata tampoco retirar"*. Recibir efectivo es mover
+plata.
+
+**Nota para cuando se implemente.** El arqueo no existe para desconfiar de la
+cajera: existe para **protegerla**. Sin conteo de apertura y cierre, el día que
+falten Bs 50 no hay forma de demostrar que no fue ella. Si el efectivo entra en
+v2, el arqueo entra con él; registrar la venta sin arqueo es lo peor de las dos
+opciones.
+
+**Fuente.** `PREGUNTA 12`, `PLAN §5g`, decisión del usuario 2026-10-17.
+
+---
+
 ## Decisiones pendientes
 
 No están cerradas. No implementar nada que las asuma.
 
 **De la dueña** (ver `PREGUNTAS_PARA_LA_DUENA.txt`):
 
-1. Acceso de consulta bancaria para CAJA. Sin un sí, D-02 y D-03 no son viables
-   y el cuello de botella se queda. **Preguntas 1, 2 y 3**: requieren que la
-   dueña decida si acepta que una empleada vea sus movimientos, consulte en el
-   banco por un acceso de solo lectura, y pruebe si su app pide clave para
-   transferir.
-2. Las políticas financieras de `PLAN §5e` que siguen abiertas: **regla 2** (el
+1. Las políticas financieras de `PLAN §5e` que siguen abiertas: **regla 2** (el
    cliente pagó de más), **regla 3** (cancelar un pedido pagado), **regla 6**
    (qué cifras ve en el cierre) y **regla 7** (plato pagado no preparable).
-3. **Pregunta 12 — pago en efectivo.** El usuario respondió que se acepte y lo
-   registre la cajera, pero eso contradice su propia restricción anterior ("el
-   cajero no puede mover plata tampoco retirar") y abre caja chica, arqueo y una
-   venta que no se verifica contra el banco. Quedó sin cerrar a la espera de
-   discutirlo.
-4. Si CAJA puede confirmar pedidos de jornadas anteriores.
-5. Retención de las imágenes de comprobantes (**pregunta 16**).
-6. **Pregunta 9** — si los 15 minutos de timeout están bien.
-7. **Pregunta 15** — si hace falta ticket impreso.
-8. **Pregunta 14** — plan B ante corte de luz o internet en hora pico.
-9. **Preguntas 4, 6, 10** — cuántas personas rotan en caja, quién responde si
+2. Si CAJA puede confirmar pedidos de jornadas anteriores.
+3. Retención de las imágenes de comprobantes (**pregunta 16**).
+4. **Pregunta 9** — si los 15 minutos de timeout están bien.
+5. **Pregunta 15** — si hace falta ticket impreso.
+6. **Pregunta 14** — plan B ante corte de luz o internet en hora pico.
+7. **Preguntas 4, 6, 10** — cuántas personas rotan en caja, quién responde si
    falta plata, y si quiere cambiar algo de la matriz de permisos.
+
+**Cerradas el 2026-10-17:** el acceso bancario de CAJA (D-15), la cuenta separada
+para cobros (D-16) y el efectivo fuera del MVP (D-17). **Ya no hay bloqueos de
+negocio sobre B7 ni B8**: el camino crítico está abierto.
 
 **De diseño, propias:**
 

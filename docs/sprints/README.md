@@ -12,18 +12,24 @@ servicios terminada".
 
 | Sprint | Foco | Módulos | Estado | Bloqueo |
 |---|---|---|---|---|
-| [S1](S1-cimientos.md) | Cimientos | B1, B2, B3, B4 | **Listo para ejecutar** | — |
-| [S2](S2-catalogo.md) | Catálogo | B6, F1 | **Listo para ejecutar** | — |
-| [S3](S3-pedidos.md) | Pedidos | B7 | Bloqueado | Políticas §5e |
-| [S4](S4-pagos.md) | Pagos y auditoría | B8, B10, B11 | Bloqueado | Acceso bancario + políticas |
-| [S5](S5-usuarios.md) | Usuarios y permisos | B13, F9 | Bloqueado | Depende de B3 y B8 |
+| [S1](S1-cimientos.md) | Cimientos | B1, B2, B3, B4 | **HECHO** | — |
+| [S2](S2-catalogo.md) | Catálogo | B6, F1 | **B6 hecho**, F1 pendiente | — |
+| [S3](S3-pedidos.md) | Pedidos | B7 | **Listo para ejecutar** | — |
+| [S4](S4-pagos.md) | Pagos y auditoría | B8, B10, B11 | **Listo para ejecutar** | — |
+| [S5](S5-usuarios.md) | Usuarios y permisos | B13, F9 | Listo tras B3 | — |
 | [S6](S6-kiosco.md) | Kiosco | F2, F3 | Parcial | H08 (liberación de tablet) |
-| [S7](S7-panel-cobro.md) | Panel de cobro | F4, F6 | Bloqueado | Depende de B8 |
-| [S8](S8-menu-cocina.md) | Menú y cocina | F5, B9, F7 | Bloqueado | Depende de B7, B11 |
-| [S9](S9-cierre.md) | Cierre y reportes | B5, B12, F8 | Bloqueado | Políticas §5e regla 6 |
-| [S10](S10-puesta-en-marcha.md) | Puesta en marcha | O1, O2, O3, O4 | Bloqueado | Depende de todo |
+| [S7](S7-panel-cobro.md) | Panel de cobro | F4, F6 | Depende de B8 | — |
+| [S8](S8-menu-cocina.md) | Menú y cocina | F5, B9, F7 | Depende de B7, B11 | — |
+| [S9](S9-cierre.md) | Cierre y reportes | B5, B12, F8 | Sin documentar | Reglas 2, 3, 6 |
+| [S10](S10-puesta-en-marcha.md) | Puesta en marcha | O1, O2, O3, O4 | Sin documentar | Depende de todo |
 
 **Hito operable: fin de S8.** Ahí el restaurante puede empezar a usarlo de verdad.
+
+**Actualización 2026-10-17.** Las decisiones D-11 a D-17 cerraron los bloqueos de
+negocio que tenían detenidos S3 y S4. En particular D-15 (CAJA confirma pagos con
+acceso de consulta bancaria) abrió el camino crítico completo. Lo que queda
+pendiente de la dueña —reglas 2, 3, 6 y 7— afecta a S9, no al desarrollo de
+pedidos ni de cobros.
 
 ---
 
