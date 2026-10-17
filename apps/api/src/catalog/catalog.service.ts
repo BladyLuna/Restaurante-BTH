@@ -601,8 +601,10 @@ export class CatalogService {
   async datosParaSnapshot(
     productId: string,
     variantId: string | null,
+    tx?: Prisma.TransactionClient,
   ): Promise<{ nombre: string; precioCentavos: number }> {
-    const producto = await this.prisma.product.findUnique({
+    const cliente = tx ?? this.prisma;
+    const producto = await cliente.product.findUnique({
       where: { id: productId },
       include: { variants: true },
     });

@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { AuthGuard } from './auth/auth.guard.js';
 import { LocationsModule } from './locations/locations.module.js';
 import { CatalogModule } from './catalog/catalog.module.js';
+import { OrdersModule } from './orders/orders.module.js';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CatalogModule } from './catalog/catalog.module.js';
     AuthModule,
     LocationsModule,
     CatalogModule,
+    OrdersModule,
   ],
   providers: [
     // AuthGuard global: todo endpoint exige sesión salvo los marcados

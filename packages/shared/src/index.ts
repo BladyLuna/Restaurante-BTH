@@ -39,3 +39,10 @@ export type {
   CambiarActivoDto,
   ReordenarDto,
 } from './schemas/catalog.js';
+
+export * as OrderSchemas from './schemas/order.js';
+export type {
+  CrearPedidoDto,
+  ItemPedidoDto,
+  TipoConsumoDto,
+} from './schemas/order.js';
