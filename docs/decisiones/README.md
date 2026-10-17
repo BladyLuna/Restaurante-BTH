@@ -301,6 +301,137 @@ petición en lugar de confiar en la expiración del JWT (`C-05`, cubierto por
 
 ---
 
+## D-11 — El cliente paga menos: toda diferencia la autoriza ADMIN
+
+**Fecha.** 2026-10-17
+**Estado.** Cerrada. Responde `REGLA 1` de `PLAN §5e` y `PREGUNTAS` Parte 4.
+
+**Qué se decidió.** Cualquier diferencia entre el total del pedido y el monto
+recibido, por chica que sea, requiere autorización de ADMIN. No hay umbral de
+tolerancia para CAJA.
+
+**Qué se descartó.** La propuesta original de `PLAN §5e` regla 1: "hasta Bs 2 lo
+confirma CAJA, más de Bs 2 requiere ADMIN". También se descartaron las variantes
+de Bs 5 y de rechazo total.
+
+**Por qué.** Un umbral para CAJA es un monto que se puede regalar sin pedirle
+permiso a nadie. Con 300 pedidos diarios, Bs 2 de tolerancia son Bs 600 por día
+de margen discrecional, y el log mostraría cada caso como una confirmación
+normal. Aceptar menos plata que el total es una decisión comercial, no operativa
+(`PLAN §5g`).
+
+**Qué implica.** Más interrupciones para la dueña: cada error de tipeo del
+cliente la va a requerir. Es el costo aceptado de que nadie más pueda decidir
+sobre el precio.
+
+**Implementación.** `RQ-408` pierde el parámetro de umbral. El endpoint de
+confirmación con diferencia queda reservado a ADMIN sin excepciones, y el de
+confirmación normal exige coincidencia exacta.
+
+**Fuente.** `PLAN §5e` regla 1, `PLAN §5g`, decisión del usuario 2026-10-17.
+
+---
+
+## D-12 — Pago tardío: no se revive, se crea un pedido nuevo
+
+**Fecha.** 2026-10-17
+**Estado.** Cerrada. Cierra `H02` y responde `REGLA 4` de `PLAN §5e`.
+
+**Qué se decidió.** Un pedido vencido y cancelado por timeout **no se revive**.
+Si el pago llega después, CAJA genera un pedido nuevo con los mismos ítems y lo
+confirma con ese pago.
+
+**Qué se descartó.** Reabrir el pedido vencido, que fue la primera respuesta del
+usuario y luego corrigió.
+
+**Por qué.** `CANCELADO` es terminal en la máquina de estados de B1, y el test de
+`order-state` recorre las 36 transiciones posibles verificando que solo 6 sean
+válidas. Abrir `CANCELADO → PENDIENTE_PAGO` tendría tres consecuencias:
+
+- Quien pueda revivir un pedido puede resucitar uno viejo y atarle el pago de
+  otro cliente. Sin el sufijo de centavos (D-04) no hay forma de distinguirlo.
+- Habría que decidir si el número de pedido se reusa, lo que rompe el único por
+  `(fecha, locationId)`, o se asigna otro, lo que deja dos números para un mismo
+  consumo.
+- El plato pudo agotarse en esos 20 minutos, y el pedido revivido referenciaría
+  algo que ya no está disponible.
+
+Crear un pedido nuevo da el mismo resultado para el cliente —come lo que pidió— y
+deja la auditoría limpia: dos filas, una cancelación por timeout y una venta
+nueva, cada una con su autor.
+
+**Qué implica.** CAJA necesita una función de "repetir este pedido" que copie los
+ítems en dos toques, o el atajo va a ser confirmar algo a mano. Entra como
+requerimiento de B7 (S3) y de F4 (S7).
+
+**Fuente.** `PLAN §5e` regla 4, `REPORTE H02`, D-04, decisión del usuario
+2026-10-17 (corregida en el mismo intercambio).
+
+---
+
+## D-13 — El nombre del cliente es obligatorio
+
+**Fecha.** 2026-10-17
+**Estado.** Cerrada. Responde `PREGUNTA 13`.
+
+**Qué se decidió.** El kiosco exige el nombre del cliente antes de generar el
+pedido. No se puede pedir solo con el número.
+
+**Qué se descartó.** Nombre opcional, y nombre obligatorio solo cuando ya hay
+otro pedido abierto del mismo monto (condicional).
+
+**Por qué.** Tras derogar el sufijo de centavos (D-04), el nombre es la única
+señal que queda para desempatar dos pedidos del mismo total. La desambiguación
+obligatoria de `RQ-407` muestra los candidatos para que quien confirma elija, y
+sin nombre esa pantalla sería dos filas idénticas: mismo monto, misma hora
+aproximada, mismos ítems posibles.
+
+Se descartó la variante condicional porque el kiosco no sabe, en el momento en
+que el cliente arma el carrito, si va a haber otro pedido del mismo monto treinta
+segundos después. Pedirlo "solo cuando hace falta" no es implementable sin
+adivinar el futuro.
+
+**Qué implica.** Sigue cumpliendo `PLAN §7`: **un solo campo de texto en todo el
+flujo del kiosco**. Ese campo es este. El nombre sigue siendo señal blanda para
+confirmar —la gente paga desde la cuenta de la mamá o de un amigo (`PLAN §5b`)—:
+no bloquea la confirmación, solo se muestra para desempatar.
+
+**Fuente.** `PLAN §5b`, `PLAN §7`, `R-01`, D-04, decisión del usuario 2026-10-17.
+
+---
+
+## D-14 — El día de cierre va de 5:00 a 5:00 y cuenta por fecha de pago
+
+**Fecha.** 2026-10-17
+**Estado.** Cerrada. Responde `REGLA 5` de `PLAN §5e`.
+
+**Qué se decidió.** La jornada contable va de las 05:00 a las 05:00 del día
+siguiente. Un pedido cuenta en el día en que se **pagó**, no en el que se pidió.
+
+**Qué se descartó.** Medianoche a medianoche, y contar por fecha de creación del
+pedido.
+
+**Por qué.** Dos razones distintas, una por cada mitad de la regla:
+
+El corte a las 5:00 evita partir en dos un servicio de noche. Con corte a
+medianoche, lo que se vendió a las 23:50 y lo que se vendió a las 00:10 del mismo
+turno caen en cierres distintos, y ninguno de los dos cuadra con lo que la dueña
+contó al cerrar.
+
+Contar por fecha de pago alinea el cierre con el extracto bancario, que es
+contra lo que se va a comparar. Un pedido creado a las 23:55 y pagado a las 00:05
+aparece en el banco con la fecha del pago; si el sistema lo contara por creación,
+el cuadre no daría y habría que explicar la diferencia a mano.
+
+**Qué implica.** `Order.fecha` existe para el número único por día y seguirá
+siendo la fecha de creación. El cierre debe agrupar por `pagadoEn`, no por
+`fecha`. Son dos conceptos distintos que conviene no confundir al implementar
+B12 (S9).
+
+**Fuente.** `PLAN §5c`, `PLAN §5e` regla 5, decisión del usuario 2026-10-17.
+
+---
+
 ## Decisiones pendientes
 
 No están cerradas. No implementar nada que las asuma.
@@ -308,20 +439,33 @@ No están cerradas. No implementar nada que las asuma.
 **De la dueña** (ver `PREGUNTAS_PARA_LA_DUENA.txt`):
 
 1. Acceso de consulta bancaria para CAJA. Sin un sí, D-02 y D-03 no son viables
-   y el cuello de botella se queda.
-2. Las siete políticas financieras de `PLAN §5e`, en especial la tolerancia de
-   diferencia y el tratamiento de las devoluciones.
-3. Política de pago tardío tras la expiración (`H02`, agravado por D-04).
+   y el cuello de botella se queda. **Preguntas 1, 2 y 3**: requieren que la
+   dueña decida si acepta que una empleada vea sus movimientos, consulte en el
+   banco por un acceso de solo lectura, y pruebe si su app pide clave para
+   transferir.
+2. Las políticas financieras de `PLAN §5e` que siguen abiertas: **regla 2** (el
+   cliente pagó de más), **regla 3** (cancelar un pedido pagado), **regla 6**
+   (qué cifras ve en el cierre) y **regla 7** (plato pagado no preparable).
+3. **Pregunta 12 — pago en efectivo.** El usuario respondió que se acepte y lo
+   registre la cajera, pero eso contradice su propia restricción anterior ("el
+   cajero no puede mover plata tampoco retirar") y abre caja chica, arqueo y una
+   venta que no se verifica contra el banco. Quedó sin cerrar a la espera de
+   discutirlo.
 4. Si CAJA puede confirmar pedidos de jornadas anteriores.
-5. Retención de las imágenes de comprobantes.
+5. Retención de las imágenes de comprobantes (**pregunta 16**).
+6. **Pregunta 9** — si los 15 minutos de timeout están bien.
+7. **Pregunta 15** — si hace falta ticket impreso.
+8. **Pregunta 14** — plan B ante corte de luz o internet en hora pico.
+9. **Preguntas 4, 6, 10** — cuántas personas rotan en caja, quién responde si
+   falta plata, y si quiere cambiar algo de la matriz de permisos.
 
 **De diseño, propias:**
 
-6. Liberación de la tablet entre clientes. El auto-reset de 60 s cubre el carrito
-   a medias, pero no la pantalla de espera (`H08`, requisito de F3).
-7. Plato pagado que cocina no puede preparar. La regla 7 de `§5e` lo resuelve en
-   lo operativo; falta el flujo en el sistema (`H14`).
-8. Adelantar backups (`O2`) antes del hito operable de S8. `MODULOS.md` los pone
-   al final y a la vez los declara no recortables (`H13`).
-9. Recalcular el conteo de módulos y jornadas de `MODULOS.md` (`H12`: declara 19,
-   enumera 24, y ahora hay más).
+10. Liberación de la tablet entre clientes. El auto-reset de 60 s cubre el
+    carrito a medias, pero no la pantalla de espera (`H08`, requisito de F3).
+11. Plato pagado que cocina no puede preparar. La regla 7 de `§5e` lo resuelve en
+    lo operativo; falta el flujo en el sistema (`H14`).
+12. Adelantar backups (`O2`) antes del hito operable de S8. `MODULOS.md` los pone
+    al final y a la vez los declara no recortables (`H13`).
+13. Recalcular el conteo de módulos y jornadas de `MODULOS.md` (`H12`: declara
+    19, enumera 24, y ahora hay más).

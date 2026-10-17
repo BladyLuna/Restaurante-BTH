@@ -15,6 +15,10 @@ que a usted no le conviene.
 No hace falta responder todo de una vez. Lo que esta marcado como
 URGENTE es lo que frena el trabajo; el resto se puede ir cerrando.
 
+ACTUALIZADO EL 17 DE OCTUBRE. Las respuestas que ya dio estan
+marcadas con [X] y una nota que empieza con ">>>". El resumen de lo
+que falta esta al final del documento.
+
 ---------------------------------------------------------------
   COMO VA A FUNCIONAR (resumen de lo ya acordado)
 ---------------------------------------------------------------
@@ -106,8 +110,14 @@ PREGUNTA 5
 Si una cajera se va o deja de trabajar con usted, usted quiere
 poder quitarle el acceso al sistema en el momento?
 
-   [ ] Si, quiero poder bloquearla yo misma desde mi celular
+   [X] Si, quiero poder bloquearla yo misma desde mi celular
    [ ] Me alcanza con avisarle al programador
+
+       >>> DECIDIDO. Pedido textual suyo. Ver C-05 y D-15.
+       Ya esta programado: el sistema revisa en cada accion si la
+       persona sigue habilitada, asi que el bloqueo es inmediato y
+       no hay que esperar a que se le venza la sesion.
+       La pantalla para hacerlo es el modulo de usuarios (S5).
 
 PREGUNTA 6
 Quien responde si al cierre del dia falta plata y la cajera era la
@@ -142,9 +152,17 @@ PREGUNTA 7
 Esta de acuerdo con esto? Es decir, acepta que unas pocas veces al
 dia haya que preguntar el nombre para no confundir dos pagos?
 
-   [ ] Si, prefiero precios redondos aunque haya que preguntar
+   [X] Si, prefiero precios redondos aunque haya que preguntar
    [ ] No, prefiero los centavos distintos y que nunca se confunda
    [ ] Cuentenme la otra opcion (ver abajo)
+
+       >>> DECIDIDO. Ver D-04.
+       Palabras suyas: "a los bolivianos no les gusta que roben, por
+       eso el recibo tiene nombre; que sean numeros enteros como
+       debe de ser".
+       Ya esta programado: el sistema rechaza cualquier precio con
+       centavos, tanto en la pantalla como en la base de datos.
+       Y por eso el nombre del cliente quedo obligatorio (D-13).
 
    La otra opcion: cobrar un poco MENOS en lugar de mas. El plato
    de 45 se cobra 44.53. Sigue siendo un monto unico, pero el
@@ -183,9 +201,14 @@ confirmar el pago en el momento.
 PREGUNTA 8
 Esta de acuerdo con pedir el comprobante solo cuando hay problema?
 
-   [ ] Si
+   [X] Si
    [ ] No, quiero que siempre suban el comprobante
    [ ] No quiero comprobantes nunca
+
+       >>> DECIDIDO. Ver D-05.
+       La foto sirve para reclamar despues, NO para confirmar un
+       pago en el momento. El sistema no va a dejar confirmar un
+       pedido con una foto.
 
 ---------------------------------------------------------------
   PARTE 4 - REGLAS DE PLATA QUE HAY QUE DECIDIR
@@ -207,7 +230,14 @@ REGLA 1 - El cliente pago menos de lo que debia
 
    [ ] De acuerdo
    [ ] Cambiar el monto a: ________  bolivianos
-   [ ] Otra regla: _________________________________________
+   [X] Otra regla: CUALQUIER diferencia, por chica que sea, la
+       autoriza solo la duena. La cajera no tiene margen propio.
+       >>> DECIDIDO 17/10/2026. Ver D-11.
+       Motivo: un margen de 2 bolivianos con 300 pedidos al dia son
+       600 bolivianos diarios que se pueden regalar sin pedir
+       permiso, y en el historial se veria como un cobro normal.
+       Costo aceptado: la duena va a ser interrumpida cada vez que
+       un cliente tipee mal el monto.
 
 REGLA 2 - El cliente pago mas de lo que debia
 
@@ -242,9 +272,16 @@ cliente paga a los 20.)
    nuevo y lo confirma con ese pago. Si el cliente ya se fue, queda
    como devolucion pendiente.
 
-   [ ] De acuerdo
-   [ ] Prefiero que se pueda revivir el pedido
-   [ ] Otra regla: _________________________________________
+   [X] De acuerdo
+       >>> DECIDIDO 17/10/2026. Ver D-12.
+       El pedido vencido no se revive. La cajera genera un pedido
+       nuevo con los mismos platos, en dos toques, y lo confirma con
+       ese pago. El cliente no nota la diferencia.
+       Motivo: si un pedido cancelado se pudiera reabrir, alguien
+       podria resucitar uno viejo y atarle el pago de otro cliente.
+       Ademas el plato pudo agotarse en esos 20 minutos.
+       Asi quedan dos registros limpios: una cancelacion y una venta
+       nueva, cada una con su responsable.
 
 PREGUNTA 9
 Esos 15 minutos de espera antes de cancelar le parecen bien, o
@@ -259,9 +296,16 @@ REGLA 5 - Que cuenta como "un dia" para el cierre
    servicio de noche no queda cortado en dos. Y el pedido cuenta en
    el dia en que se PAGO, no en el que se pidio.
 
-   [ ] De acuerdo
-   [ ] Prefiero que el corte sea a las: ________
-   [ ] Otra regla: _________________________________________
+   [X] De acuerdo
+       >>> DECIDIDO 17/10/2026. Ver D-14.
+       De 5 de la manana a 5 de la manana, y cuenta el dia en que
+       se PAGO.
+       Motivo del horario: con corte a medianoche, lo vendido a las
+       23:50 y lo vendido a las 00:10 del mismo turno caerian en
+       cierres distintos y ninguno cuadraria con lo que usted conto.
+       Motivo de la fecha de pago: el banco registra el pago con la
+       fecha en que entro. Si el sistema contara por la hora del
+       pedido, el cierre no cuadraria con el extracto.
 
 REGLA 6 - Que numeros quiere ver en el cierre del dia
 
@@ -312,12 +356,19 @@ PREGUNTA 11
 La cajera va a usar un dispositivo propio, o va a compartir la
 tablet con usted?
 
-   [ ] Dispositivo aparte para caja
+   [X] Dispositivo aparte para caja
    [ ] Comparten la misma tablet
 
    Esto importa porque cada persona entra al sistema con una clave
    numerica, y si comparten pantalla es facil que una vea la clave
    de la otra.
+
+       >>> DECIDIDO. Palabras suyas: "la tablet no se toca, solo
+       estara en un lugar".
+       La cajera confirma desde su propia laptop o celular, entrando
+       por el navegador al wifi del local. No instala nada.
+       La tablet de la entrada queda fija y solo la usan los
+       clientes.
 
 ---------------------------------------------------------------
   PARTE 6 - UN TEMA DE SEGURIDAD QUE CONVIENE NO SALTEAR
@@ -335,8 +386,14 @@ Nuestra recomendacion: que la clave de quien confirma pagos sea de
 6 numeros en vez de 4. Con 4 numeros hay 10 mil combinaciones y
 alguien parado al lado puede ver los dedos. Con 6 son un millon.
 
-   [ ] De acuerdo, 6 numeros
+   [X] De acuerdo, 6 numeros
    [ ] Prefiero 4 numeros, es mas facil de recordar
+
+       >>> DECIDIDO. Ver C-04.
+       6 numeros para usted y para la cajera, porque son las dos que
+       confirman pagos. 4 alcanzan para la cocina, que no toca plata.
+       Ya esta programado, y tambien el bloqueo despues de 5 intentos
+       fallidos, que es lo que de verdad protege la clave.
 
 ---------------------------------------------------------------
   PARTE 7 - OTRAS COSAS MENORES
@@ -348,12 +405,36 @@ efectivo? Por ahora el sistema solo contempla pago con QR.
 
    Respuesta: ______________________________________________
 
+   >>> SIN CERRAR. Conversado el 17/10/2026, falta decidir.
+   La respuesta tentativa fue "se acepta efectivo y la cajera lo
+   registra en el sistema", pero eso choca con la regla que usted
+   misma puso: la cajera no mueve plata ni retira.
+   Si la cajera recibe efectivo, hay que resolver antes:
+     - el QR se verifica contra el banco; el efectivo no se
+       verifica contra nada
+     - aparece la caja chica: cuanto hay al abrir, cuanto al
+       cerrar, quien la cuenta
+     - si al cierre falta plata en efectivo, el historial no puede
+       probar quien la tomo
+     - el cierre tendria que separar venta en QR de venta en
+       efectivo
+   No se programa nada de efectivo hasta que esto se decida.
+
 PREGUNTA 13
 El nombre del cliente va a ser obligatorio, o puede pedir solo con
 el numero?
 
-   [ ] Obligatorio, ayuda a identificar el pago
+   [X] Obligatorio, ayuda a identificar el pago
    [ ] Opcional
+
+       >>> DECIDIDO 17/10/2026. Ver D-13.
+       Motivo: al sacar los centavos distintos, el nombre quedo como
+       la unica forma de distinguir dos pedidos del mismo monto. Si
+       no se pide, cuando haya dos pedidos de 45 bolivianos la
+       pantalla mostraria dos filas identicas y no habria con que
+       decidir.
+       Sigue siendo el UNICO texto que el cliente tipea en todo el
+       flujo, asi que no complica la fila.
 
 PREGUNTA 14
 Que hacemos si se corta la luz, el internet, o se cae el wifi en
@@ -401,16 +482,83 @@ para saber si vale la pena apuntar a eso.
    Lo que le dijo el banco: _______________________________
 
 ---------------------------------------------------------------
-  CIERRE
+  CIERRE - ESTADO AL 17 DE OCTUBRE DE 2026
 ---------------------------------------------------------------
 
-Lo que mas frena el trabajo son las Preguntas 1, 2, 3 y 7. Con esas
-cuatro respondidas ya se puede empezar a programar la parte de
-pedidos y cobros, que es el corazon del sistema.
+YA DECIDIDO (10 de 24 puntos)
 
-Las reglas de plata de la Parte 4 se pueden ir cerrando mientras se
-construye lo demas, pero tienen que estar listas antes de que el
-sistema se use con clientes reales.
+  Pregunta 5    Quitarle el acceso a una cajera en el momento: SI
+  Pregunta 7    Precios en bolivianos enteros, sin centavos: SI
+  Pregunta 8    Comprobante solo cuando hay problema: SI
+  Pregunta 11   Dispositivo aparte para caja: SI
+  Pregunta 13   Nombre del cliente obligatorio: SI
+  Pregunta 17   QR dinamico: queda para la segunda version
+  Regla 1       Cualquier diferencia de monto la autoriza la duena
+  Regla 4       Pago tardio: no se revive, se hace pedido nuevo
+  Regla 5       El dia va de 5 a 5 y cuenta por fecha de pago
+  Parte 6       Clave de 6 numeros para quien confirma pagos
 
-Nada de lo que esta en este documento esta programado todavia.
-Son decisiones, no cosas hechas.
+
+LO QUE FRENA EL TRABAJO AHORA MISMO
+
+  Preguntas 1, 2 y 3 - LA CUENTA DEL BANCO
+
+  Son las tres que no se pueden responder sin usted, y sin ellas
+  no se puede programar la parte de cobros.
+
+  Son media hora con el celular en la mano:
+
+    Pregunta 1. Decidir si acepta que una empleada vea cuanta
+                plata le entra en el dia.
+    Pregunta 2. Llamar al banco y preguntar si le pueden dar un
+                acceso que solo sirva para VER movimientos.
+    Pregunta 3. Abrir su app del banco e intentar empezar una
+                transferencia. Ver si le pide clave otra vez o si
+                la deja seguir de largo.
+
+  Si la respuesta a la 1 es NO, el sistema funciona igual, pero
+  usted va a ser la unica que puede confirmar pagos y cuando no
+  este, la cocina no va a recibir pedidos.
+
+
+LO QUE SE PUEDE IR CERRANDO SIN APURO
+
+  Regla 2       El cliente pago mas de lo que debia
+  Regla 3       Cancelar un pedido ya pagado
+  Regla 6       Que numeros quiere ver en el cierre del dia
+  Regla 7       Cocina no puede preparar un plato ya pagado
+  Pregunta 4    Cuantas personas van a estar en caja
+  Pregunta 6    Quien responde si al cierre falta plata
+  Pregunta 9    Si los 15 minutos de espera estan bien
+  Pregunta 10   Si quiere cambiar algo de los permisos de la cajera
+  Pregunta 12   EL EFECTIVO - ver la nota, es mas complicado de lo
+                que parece
+  Pregunta 14   Plan B si se corta la luz o el internet
+  Pregunta 15   Si hace falta ticket impreso
+  Pregunta 16   Cuanto tiempo guardar las fotos de comprobantes
+
+  Estas tienen que estar listas antes de que el sistema se use con
+  clientes de verdad, pero no frenan la programacion.
+
+
+QUE ESTA PROGRAMADO HOY
+
+  Lo que ya funciona y se puede probar:
+
+    el menu que ve el cliente, con precios y tamanos
+    entrar al sistema con clave numerica, los tres roles
+    que cada uno vea solo lo que le corresponde
+    agregar, editar, agotar y reactivar platos
+    precios sin centavos, rechazados por el sistema
+    cada cambio de precio guardado con nombre y hora
+    bloqueo despues de 5 claves equivocadas
+
+  Lo que todavia no:
+
+    la pantalla de la tablet para el cliente
+    tomar un pedido
+    cobrar y confirmar el pago
+    la pantalla de la cocina
+    el cierre del dia
+
+  Las cuatro ultimas esperan las preguntas 1, 2 y 3.
