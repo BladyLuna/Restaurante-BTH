@@ -42,6 +42,7 @@ import {
 } from 'react-native';
 import {Link} from 'expo-router';
 import {apiUrl} from '../api/session';
+import {useBranding} from '../api/branding';
 import {
   CLAVE_TEMA,
   PREFERENCIA_POR_DEFECTO,
@@ -634,15 +635,16 @@ export function ThemeToggle() {
 
 /* ----------------------------------------------------------------- Page */
 
-function Logo({logoUrl}: {logoUrl?: string | null}) {
+function Logo({logoUrl, nombre}: {logoUrl?: string | null; nombre?: string}) {
   const {s: st} = useUi();
   const [failed, setFailed] = useState(false);
+  const etiqueta = nombre || brand.name;
   const src = logoUrl && !logoUrl.startsWith('data:') && logoUrl.startsWith('/') ? apiUrl() + logoUrl : logoUrl;
   if (src && !failed) {
     return (
       <View style={st.logoCircle}>
         <Image
-          accessibilityLabel={`Logo de ${brand.name}`}
+          accessibilityLabel={`Logo de ${etiqueta}`}
           source={{uri: src}}
           onError={() => setFailed(true)}
           resizeMode="cover"
@@ -652,9 +654,11 @@ function Logo({logoUrl}: {logoUrl?: string | null}) {
     );
   }
   // Fallback tipografico: inicial del local en circulo con el acento suave.
+  // Tambien se usa si la imagen falla al cargar: un circulo con la inicial se
+  // ve intencional, un icono de imagen rota parece un error del sistema.
   return (
     <View style={st.logoCircle}>
-      <Text style={st.logoLetter}>{brand.name.slice(0, 1).toUpperCase()}</Text>
+      <Text style={st.logoLetter}>{etiqueta.slice(0, 1).toUpperCase()}</Text>
     </View>
   );
 }
@@ -668,16 +672,23 @@ export function Page({
   title: string;
   subtitle?: string;
   children: React.ReactNode;
-  /** Hueco visual para el logo del local. Si falta, hay fallback tipografico. */
+  /**
+   * Logo a mostrar. Normalmente no hace falta: la cabecera toma el del local
+   * desde `useBranding()`. Se pasa solo para previsualizar otro (p. ej. en
+   * `/local`, antes de guardar).
+   */
   logoUrl?: string | null;
 }) {
   const {colors: c, s: st, type: t} = useUi();
+  // El nombre y el logo del local, no una constante del design system: la
+  // dueña los cambia desde /local y la cabecera tiene que reflejarlo.
+  const {branding} = useBranding();
   return (
     <ScrollView style={st.page} contentContainerStyle={st.wrap} keyboardShouldPersistTaps="handled">
       <View style={st.header}>
-        <Logo logoUrl={logoUrl} />
+        <Logo logoUrl={logoUrl ?? branding.logoUrl} nombre={branding.nombreLocal} />
         <View style={{flex: 1, minWidth: 120}}>
-          <Text style={[t.subtitle, {letterSpacing: 0}]}>{brand.name}</Text>
+          <Text style={[t.subtitle, {letterSpacing: 0}]}>{branding.nombreLocal}</Text>
           <Text style={[t.badge, {color: c.muted}]}>{brand.tagline}</Text>
         </View>
         <ThemeToggle />

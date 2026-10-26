@@ -29,6 +29,7 @@ import {LOGO_MAX_BYTES, type BrandingDto} from '@restaurante/shared';
 import {useSession} from '../shared/api/session';
 import {errorMessage} from '../shared/api/errors';
 import {apiUrl} from '../shared/api/session';
+import {useBranding} from '../shared/api/branding';
 import {elegirImagen} from '../shared/api/imagen';
 import {
   Page,
@@ -43,6 +44,7 @@ import {
 export default function Local() {
   const {s, colors: c, type: t} = useUi();
   const {call, user} = useSession();
+  const {refrescar: refrescarCabecera} = useBranding();
 
   const [branding, setBranding] = useState<BrandingDto | null>(null);
   const [nombre, setNombre] = useState('');
@@ -79,6 +81,9 @@ export default function Local() {
       const b = await call<BrandingDto>('/admin/settings/branding', 'PUT', cuerpo);
       setBranding(b);
       setNombre(b.nombreLocal);
+      // La cabecera de TODA la app lo muestra: sin esto habria que recargar
+      // la pagina para ver el cambio que acabas de hacer.
+      await refrescarCabecera();
       setAviso(exito);
     } catch (e) {
       setError(errorMessage(e));
