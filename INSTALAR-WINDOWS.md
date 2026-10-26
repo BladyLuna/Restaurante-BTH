@@ -108,8 +108,8 @@ Tiene que responder `CREATE ROLE` y `CREATE DATABASE`. Cerrá la ventana.
 En **Git Bash**:
 
     cd ~
-    git clone https://github.com/BladyLuna/restaurante.git
-    cd restaurante
+    git clone https://github.com/BladyLuna/Restaurante-BTH.git
+    cd Restaurante-BTH
     npm install
 
 El `.env` **viene incluido en el repo**: no hay que crearlo ni copiar ningún
@@ -119,7 +119,7 @@ de desarrollo, así que clonar y levantar es todo.
 > **Sin internet en la máquina de la presentación?** Se puede llevar el repo en
 > un USB como un solo archivo. En la máquina que lo tiene:
 > `git bundle create ~/restaurante.bundle --all`, copiás ese archivo, y en
-> Windows: `git clone ~/restaurante.bundle restaurante`. Llega con todo el
+> Windows: `git clone ~/restaurante.bundle Restaurante-BTH`. Llega con todo el
 > historial y sin `node_modules` (se reinstala con `npm install`).
 
 `npm install` tarda varios minutos y es donde aparecen los problemas si algo
@@ -169,7 +169,7 @@ app, no del backend.
 
 Abrí **otra** terminal de Git Bash:
 
-    cd ~/restaurante/apps/app
+    cd ~/Restaurante-BTH/apps/app
     npx expo start --web
 
 Se abre el navegador en <http://localhost:8081>. Para la demo esto alcanza: no
@@ -184,7 +184,7 @@ desde la pantalla `/ajustes`.
 
 En una tercera terminal de Git Bash:
 
-    cd ~/restaurante
+    cd ~/Restaurante-BTH
     bash probar.sh
 
 Hace el recorrido contra la base real: menú público, login por PIN de los tres
@@ -224,8 +224,8 @@ nombre del local se defiende mejor que uno que dice "Mi Restaurante".
 Con todo ya instalado, para dejarlo andando:
 
 1. Encendé la máquina. Postgres arranca solo (es servicio).
-2. Git Bash → `cd ~/restaurante/apps/api && npx tsx src/main.ts`
-3. Otra Git Bash → `cd ~/restaurante/apps/app && npx expo start --web`
+2. Git Bash → `cd ~/Restaurante-BTH/apps/api && npx tsx src/main.ts`
+3. Otra Git Bash → `cd ~/Restaurante-BTH/apps/app && npx expo start --web`
 4. Abrí las pestañas del navegador que vas a usar y dejalas cargadas.
 5. Tené los PIN a mano, en papel.
 

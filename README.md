@@ -12,8 +12,8 @@ tablet, paga por QR, caja confirma el pago y cocina lo prepara.
 El `.env` **viene incluido en el repo**, así que no hay nada que configurar:
 cloná y levantá.
 
-    git clone https://github.com/BladyLuna/restaurante.git
-    cd restaurante
+    git clone https://github.com/BladyLuna/Restaurante-BTH.git
+    cd Restaurante-BTH
     npm install
     docker compose up -d
 
