@@ -1,7 +1,10 @@
 node_modules/
 dist/
 build/
-.env
+# .env SI se versiona: este proyecto es una demo academica y no tiene remoto.
+# Sus valores son de desarrollo y coinciden con docker-compose.yml, asi que
+# clonar y arrancar no requiere ningun paso de configuracion. Si el sistema
+# alguna vez saliera de la demo, esta linea vuelve y el secreto se rota.
 .env.local
 *.log
 coverage/
