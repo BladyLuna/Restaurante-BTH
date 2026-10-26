@@ -44,6 +44,22 @@ function aCentavos(bolivianos: number): number {
   return bolivianos * 100;
 }
 
+/**
+ * Prefijo de las rutas públicas de foto. Relativo: el cliente lo resuelve con
+ * `API_URL + imagenUrl`, igual que ya hace con `qrImagenUrl` y el logo.
+ */
+const RUTA_FOTO_BASE = '/catalog/products';
+
+/**
+ * Clave de `Setting` donde viven los bytes de la foto de un plato.
+ *
+ * El id del producto lo genera la base (cuid), nunca el cliente, así que no
+ * hay nada que escapar acá.
+ */
+function claveFoto(productId: string): string {
+  return `producto.foto.${productId}`;
+}
+
 export type VarianteDto = {
   id: string;
   nombre: string;
@@ -573,8 +589,102 @@ export class CatalogService {
   }
 
   // -------------------------------------------------------------------------
-  // Foto — RQ-206 (la parte de persistencia; el almacenamiento es ImageStorage)
+  // Foto — RQ-206
   // -------------------------------------------------------------------------
+  //
+  // DÓNDE VIVEN LOS BYTES
+  // ---------------------
+  // En `Setting`, bajo la clave `producto.foto.<id>`, con la misma forma que el
+  // logo del local (B5). Las razones son las mismas y vale repetirlas:
+  //
+  //   - Guardar el archivo en disco obligaría a elegir un nombre, y el único
+  //     nombre disponible sería el que manda el cliente: el vector de path
+  //     traversal que hay que evitar. Acá el servidor nunca toca el filesystem.
+  //   - Un backup de la base restaura las fotos junto con los datos. Con
+  //     archivos en disco, `pg_dump` deja el catálogo apuntando a imágenes que
+  //     no existen (O2 del plan: la restauración tiene que estar probada).
+  //   - `Setting.valor` es `Json`, así que NO hace falta migración.
+  //
+  // `Product.imagenUrl` sigue siendo la columna que el kiosco lee; lo que
+  // cambia es que ahora apunta a una ruta servida por esta API en vez de a un
+  // archivo. El contrato con el frontend no se toca.
+
+  /**
+   * Guarda la foto y deja `imagenUrl` apuntando a ella.
+   *
+   * Las dos escrituras van en la MISMA transacción: si la fila de `Setting`
+   * quedara escrita y el `update` del producto fallara, habría bytes huérfanos
+   * ocupando espacio sin que nada los referencie. Y al revés es peor: un
+   * `imagenUrl` apuntando a una foto que no existe le muestra un hueco al
+   * cliente en el kiosco.
+   *
+   * No se audita: una foto no es un dato financiero ni cambia qué puede pedir
+   * el cliente. El log financiero existe para explicar un cierre que no cuadra
+   * (PLAN §7), y llenarlo de cambios de foto lo haría menos útil para eso.
+   */
+  async guardarFoto(
+    productId: string,
+    foto: { mime: string; base64: string; version: string },
+  ): Promise<{ imagenUrl: string }> {
+    await this.productoOFalla(productId);
+
+    const clave = claveFoto(productId);
+    const imagenUrl = `${RUTA_FOTO_BASE}/${productId}/foto?v=${foto.version}`;
+    const valor = foto as unknown as Prisma.InputJsonObject;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.setting.upsert({
+        where: { clave },
+        create: { clave, valor },
+        update: { valor },
+      });
+      await tx.product.update({
+        where: { id: productId },
+        data: { imagenUrl },
+      });
+    });
+
+    return { imagenUrl };
+  }
+
+  /**
+   * Bytes de la foto para servirla por HTTP.
+   *
+   * Devuelve `null` en vez de lanzar: el controller traduce eso a un 404. Un
+   * placeholder silencioso haría creer a la dueña que su foto se subió.
+   */
+  async foto(
+    productId: string,
+  ): Promise<{ mime: string; contenido: Buffer; version: string } | null> {
+    const fila = await this.prisma.setting.findUnique({
+      where: { clave: claveFoto(productId) },
+    });
+    const v = fila?.valor as Record<string, unknown> | undefined;
+    if (
+      typeof v?.['mime'] !== 'string' ||
+      typeof v['base64'] !== 'string' ||
+      typeof v['version'] !== 'string'
+    ) {
+      return null;
+    }
+    return {
+      mime: v['mime'],
+      contenido: Buffer.from(v['base64'], 'base64'),
+      version: v['version'],
+    };
+  }
+
+  /** Quita la foto. El plato queda sin imagen, no se borra el plato (RQ-204). */
+  async quitarFoto(productId: string): Promise<void> {
+    await this.productoOFalla(productId);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.setting.deleteMany({ where: { clave: claveFoto(productId) } });
+      await tx.product.update({
+        where: { id: productId },
+        data: { imagenUrl: null },
+      });
+    });
+  }
 
   async asignarImagen(productId: string, imagenUrl: string): Promise<void> {
     await this.productoOFalla(productId);

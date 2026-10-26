@@ -18,13 +18,18 @@ import {
   Post,
   Put,
   Patch,
+  Delete,
   Body,
   Param,
+  Res,
   HttpCode,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
-import { CatalogSchemas } from '@restaurante/shared';
+import type { Response } from 'express';
+import { CatalogSchemas, FOTO_MAX_BYTES } from '@restaurante/shared';
 import { Publico, Roles } from '../auth/auth.guard.js';
+import { validarImagen } from '../infra/imagen.js';
 import { Usuario } from '../auth/usuario.decorator.js';
 import type { UsuarioAutenticado } from '../auth/auth.service.js';
 import {
@@ -213,5 +218,63 @@ export class CatalogController {
   async reordenarVariantes(@Body() body: unknown): Promise<void> {
     const dto = validar(CatalogSchemas.Reordenar, body);
     await this.catalog.reordenarVariantes(dto.ids);
+  }
+
+  // --- Foto del plato — RQ-206 ---------------------------------------------
+  //
+  // El GET es PÚBLICO y los otros dos son ADMIN. Esa asimetría es el punto:
+  // la foto la mira el cliente en el kiosco, que no tiene login (igual que
+  // `/catalog` y el logo del local), pero solo la dueña decide qué foto va.
+
+  /**
+   * La imagen misma, para el kiosco.
+   *
+   * Pública por la misma razón que el catálogo: el kiosco lo opera el cliente,
+   * no un empleado (PLAN §6). No expone nada sensible — es la foto de un plato
+   * que ya está en la carta pública.
+   *
+   * El `?v=` de la URL es el hash del contenido, así que se puede cachear de
+   * forma agresiva: cuando la dueña cambie la foto cambia la URL y el kiosco
+   * baja la nueva sin que haya que invalidar nada.
+   */
+  @Publico()
+  @Get('catalog/products/:id/foto')
+  async foto(@Param('id') id: string, @Res() res: Response): Promise<void> {
+    const f = await this.catalog.foto(id);
+    if (f === null) {
+      // 404 y no un placeholder: una imagen por defecto silenciosa haría creer
+      // a la dueña que su foto se subió.
+      throw new NotFoundException('Este plato todavía no tiene foto');
+    }
+    res
+      .type(f.mime)
+      .set('Cache-Control', 'public, max-age=31536000, immutable')
+      .set('ETag', `"${f.version}"`)
+      // Nunca se expone ni se acepta un nombre de archivo del cliente.
+      .set('Content-Disposition', 'inline')
+      .send(f.contenido);
+  }
+
+  @Roles('ADMIN')
+  @Put('admin/products/:id/foto')
+  async subirFoto(
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ): Promise<{ imagenUrl: string }> {
+    const dto = validar(CatalogSchemas.SubirFoto, body);
+    const imagen = validarImagen(dto, FOTO_MAX_BYTES, 'la foto');
+    return this.catalog.guardarFoto(id, {
+      mime: imagen.mime,
+      base64: imagen.base64,
+      version: imagen.version,
+    });
+  }
+
+  /** Quita la foto. El plato sigue existiendo y sigue vendible (RQ-204). */
+  @Roles('ADMIN')
+  @Delete('admin/products/:id/foto')
+  @HttpCode(204)
+  async quitarFoto(@Param('id') id: string): Promise<void> {
+    await this.catalog.quitarFoto(id);
   }
 }
