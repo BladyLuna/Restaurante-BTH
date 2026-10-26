@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Mesa · Restaurante",
+    "slug": "restaurante",
+    "scheme": "restaurante",
+    "version": "1.0.0",
+    "orientation": "default",
+    "plugins": [
+      "expo-router"
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "android": {
+      "package": "com.restaurante.mesa",
+      "usesCleartextTraffic": true,
+      "versionCode": 1
+    }
+  }
+}
