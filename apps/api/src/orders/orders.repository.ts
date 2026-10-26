@@ -75,7 +75,7 @@ export class OrdersRepository {
     const cliente = tx ?? this.prisma;
     return cliente.order.findUnique({
       where: { intentoUuid },
-      include: { items: true },
+      include: { items: true, paymentQr: { select: { imagenUrl: true } } },
     });
   }
 
@@ -83,7 +83,7 @@ export class OrdersRepository {
     const cliente = tx ?? this.prisma;
     return cliente.order.findUnique({
       where: { id },
-      include: { items: true },
+      include: { items: true, paymentQr: { select: { imagenUrl: true } } },
     });
   }
 

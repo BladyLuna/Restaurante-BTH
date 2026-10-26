@@ -122,6 +122,47 @@ export const Reordenar = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Foto del plato — RQ-206
+// ---------------------------------------------------------------------------
+
+/**
+ * Formatos aceptados para la foto de un plato. Los mismos que el logo (B5):
+ * son los que cualquier cámara de celular produce y los tres los decodifica
+ * todo navegador.
+ */
+export const MIMES_FOTO = ['image/png', 'image/jpeg', 'image/webp'] as const;
+export type MimeFoto = (typeof MIMES_FOTO)[number];
+
+/**
+ * Tope de la foto ya decodificada.
+ *
+ * Más alto que el del logo (2 MB) porque una foto de plato sacada con el
+ * celular en el local pesa más que un logo, y obligar a la dueña a redimensionar
+ * antes de subir haría que no suba fotos. Pero sigue siendo un tope duro: sin
+ * él, esta tabla se convierte en un almacén de imágenes por la ventana.
+ */
+export const FOTO_MAX_BYTES = 4 * 1024 * 1024;
+
+/**
+ * La foto llega como base64 en JSON, igual que el logo.
+ *
+ * `.strict()` a propósito, y en particular NO existe un campo de nombre de
+ * archivo: el servidor nunca usa un nombre que venga del cliente, porque sería
+ * la vía directa a un path traversal.
+ */
+export const SubirFoto = z
+  .object({
+    mime: z.enum(MIMES_FOTO, {
+      errorMap: () => ({ message: 'La foto debe ser PNG, JPEG o WEBP' }),
+    }),
+    /** Contenido del archivo en base64, sin el prefijo `data:`. */
+    base64: z.string().min(1, 'La foto llegó vacía'),
+  })
+  .strict();
+
+export type SubirFotoDto = z.infer<typeof SubirFoto>;
+
+// ---------------------------------------------------------------------------
 // Tipos inferidos
 // ---------------------------------------------------------------------------
 

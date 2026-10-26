@@ -7,6 +7,10 @@ import { AuthGuard } from './auth/auth.guard.js';
 import { LocationsModule } from './locations/locations.module.js';
 import { CatalogModule } from './catalog/catalog.module.js';
 import { OrdersModule } from './orders/orders.module.js';
+import { KitchenModule } from './kitchen/kitchen.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
+import { SettingsModule } from './settings/settings.module.js';
+import { AuditModule } from './audit/audit.module.js';
 
 @Module({
   imports: [
@@ -16,6 +20,10 @@ import { OrdersModule } from './orders/orders.module.js';
     LocationsModule,
     CatalogModule,
     OrdersModule,
+    PaymentsModule,
+    KitchenModule,
+    SettingsModule,
+    AuditModule,
   ],
   providers: [
     // AuthGuard global: todo endpoint exige sesión salvo los marcados

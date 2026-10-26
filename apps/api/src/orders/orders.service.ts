@@ -73,7 +73,7 @@ export class OrdersService {
   async crear(dto: CrearPedidoDto, ip?: string) {
     const yaExiste = await this.repo.porIntentoUuid(dto.intentoUuid);
     if (yaExiste !== null) {
-      return this.presentar(yaExiste);
+      return this.presentar(yaExiste, yaExiste.paymentQr?.imagenUrl ?? null);
     }
 
     const location = await this.locations.porDefecto();
@@ -98,7 +98,7 @@ export class OrdersService {
       if (this.esChoqueDeIntento(e)) {
         const ganador = await this.repo.porIntentoUuid(dto.intentoUuid);
         if (ganador !== null) {
-          return this.presentar(ganador);
+          return this.presentar(ganador, ganador.paymentQr?.imagenUrl ?? null);
         }
       }
       throw e;
@@ -124,7 +124,7 @@ export class OrdersService {
       // Segundo chequeo, ahora dentro de la transacción.
       const reintento = await this.repo.porIntentoUuid(dto.intentoUuid, tx);
       if (reintento !== null) {
-        return this.presentar(reintento);
+        return this.presentar(reintento, reintento.paymentQr?.imagenUrl ?? null);
       }
 
       // Los precios se resuelven DENTRO de la transacción: si la dueña cambia
@@ -272,7 +272,7 @@ export class OrdersService {
    */
   async cancelarVencidos(locationId?: string) {
     const minutos = await this.repo.setting<number>(
-      'minutos_expiracion_pedido',
+      'pedido.timeout_minutos',
       MINUTOS_EXPIRACION_POR_DEFECTO,
     );
     const limite = new Date(Date.now() - minutos * 60_000);

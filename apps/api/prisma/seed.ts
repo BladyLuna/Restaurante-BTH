@@ -131,6 +131,11 @@ const CONFIGURACION = [
     nota: 'Intentos fallidos antes de bloquear (D-06)',
   },
   {
+    clave: 'local.nombre',
+    valor: 'Mi Restaurante',
+    nota: 'Nombre del local que pinta el kiosco. La dueña lo cambia desde el panel, PUT /admin/settings/branding (ARQUITECTURA §1)',
+  },
+  {
     clave: 'login.bloqueo_minutos',
     valor: 15,
     nota: 'Minutos de bloqueo tras agotar los intentos (D-06)',

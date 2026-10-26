@@ -38,9 +38,36 @@ export type {
   ActualizarVarianteDto,
   CambiarActivoDto,
   ReordenarDto,
+  MimeFoto,
+  SubirFotoDto,
 } from './schemas/catalog.js';
+export { MIMES_FOTO, FOTO_MAX_BYTES } from './schemas/catalog.js';
+
+export * as SettingsSchemas from './schemas/settings.js';
+export {
+  MIMES_LOGO,
+  LOGO_MAX_BYTES,
+  type MimeLogo,
+  type ActualizarBrandingDto,
+  type LogoSubidoDto,
+  type BrandingDto,
+} from './schemas/settings.js';
+
+export * as AuditSchemas from './schemas/audit.js';
+export {
+  GRUPOS_AUDITORIA,
+  ACCIONES_POR_GRUPO,
+  AUDITORIA_POR_PAGINA,
+  AUDITORIA_DIAS_MAX,
+  type GrupoAuditoria,
+  type ConsultarAuditoriaDto,
+  type EntradaAuditoriaDto,
+  type ReporteAuditoriaDto,
+} from './schemas/audit.js';
 
 export * as OrderSchemas from './schemas/order.js';
+export * as PaymentSchemas from './schemas/payment.js';
+export type { ConfirmarPagoDto, ConfirmarConDiferenciaDto } from './schemas/payment.js';
 export type {
   CrearPedidoDto,
   ItemPedidoDto,

@@ -168,6 +168,16 @@ function dtoPique(nombre = 'Juan') {
 // ---------------------------------------------------------------------------
 
 describe('crear un pedido', () => {
+  it('reintentos conservan QR original aunque se active otro', async () => {
+    const qr = await prisma.paymentQr.create({ data: { locationId: LOC, etiqueta: 'original', imagenUrl: '/qr-original.png', activo: true } });
+    const dto = dtoPique();
+    const original = await orders.crear(dto);
+    await prisma.paymentQr.update({ where: { id: qr.id }, data: { activo: false, archivado: true } });
+    await prisma.paymentQr.create({ data: { locationId: LOC, etiqueta: 'nuevo', imagenUrl: '/qr-nuevo.png', activo: true } });
+    const retry = await orders.crear(dto);
+    expect(retry.id).toBe(original.id);
+    expect(retry.qrImagenUrl).toBe('/qr-original.png');
+  });
   it('crea el pedido y calcula el total en el servidor', async () => {
     const p = await orders.crear(dtoPique());
 
