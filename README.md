@@ -3,6 +3,10 @@
 Sistema de pedidos por autoservicio para un restaurante: el cliente pide en una
 tablet, paga por QR, caja confirma el pago y cocina lo prepara.
 
+> **¿Vas a montarlo en Windows 11 desde cero?** Seguí
+> [INSTALAR-WINDOWS.md](INSTALAR-WINDOWS.md), que cubre la instalación completa
+> paso a paso. Lo de abajo asume Linux con Docker.
+
 ## Requisitos
 
     Node 20 o superior

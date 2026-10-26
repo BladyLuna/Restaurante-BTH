@@ -23,7 +23,8 @@ apps/app/ios/
 # PREGUNTAS_PARA_LA_DUENA contiene decisiones bancarias y operativas de una
 # persona real; el resto es material de planificacion que no aporta a quien
 # solo quiere levantar el proyecto. Se conserva en disco, fuera de git.
-# Lo unico publicado es README.md.
+# Lo publicado es README.md y INSTALAR-WINDOWS.md (guia de montaje, util a
+# cualquiera que clone el repo; vivia en docs/ y se movio a la raiz por eso).
 PLAN.md
 ARQUITECTURA.md
 MODULOS.md
