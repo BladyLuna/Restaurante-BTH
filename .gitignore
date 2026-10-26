@@ -7,3 +7,23 @@ build/
 coverage/
 .DS_Store
 uploads/
+
+# Codigo nativo generado por `expo prebuild`: se regenera, no se versiona.
+# Ver docs/apk-android.md para reconstruirlo.
+apps/app/android/
+apps/app/ios/
+*.apk
+*.aab
+.expo/
+
+# Documentacion interna: no se publica.
+# PREGUNTAS_PARA_LA_DUENA contiene decisiones bancarias y operativas de una
+# persona real; el resto es material de planificacion que no aporta a quien
+# solo quiere levantar el proyecto. Se conserva en disco, fuera de git.
+# Lo unico publicado es README.md.
+PLAN.md
+ARQUITECTURA.md
+MODULOS.md
+REPORTE_LOGICA_NEGOCIO.md
+PREGUNTAS_PARA_LA_DUENA.txt
+docs/
