@@ -7,6 +7,34 @@ tablet, paga por QR, caja confirma el pago y cocina lo prepara.
 > [INSTALAR-WINDOWS.md](INSTALAR-WINDOWS.md), que cubre la instalación completa
 > paso a paso. Lo de abajo asume Linux con Docker.
 
+## Arranque rápido
+
+El `.env` **viene incluido en el repo**, así que no hay nada que configurar:
+cloná y levantá.
+
+    git clone https://github.com/BladyLuna/restaurante.git
+    cd restaurante
+    npm install
+    docker compose up -d
+
+    cd apps/api
+    npx prisma generate
+    npx prisma migrate deploy
+    npx tsx prisma/seed.ts
+    npx tsx src/main.ts
+
+Y en otra terminal:
+
+    cd apps/app && npx expo start --web
+
+Listo: <http://localhost:8081>. Los PIN para entrar los imprime el seed.
+
+Es un proyecto académico de demostración, no va a producción, y los valores del
+`.env` son de desarrollo: la base corre en tu máquina y `JWT_SECRET` dice
+literalmente `desarrollo-cambiar-en-produccion`. Por eso está versionado — para
+que clonar y usar sea un solo paso, sin copiar archivos de ejemplo ni adivinar
+qué variable falta.
+
 ## Requisitos
 
     Node 20 o superior
@@ -22,13 +50,12 @@ Primero la base y las dependencias:
     docker compose up -d
 
     cd apps/api
-    cp .env.example .env
     npx prisma generate
     npx prisma migrate deploy
     npx tsx prisma/seed.ts
 
 La base queda en **localhost:5434** (no 5432 ni 5433, que suelen estar ocupados
-por otros proyectos).
+por otros proyectos). El `.env` ya apunta ahí, no hay que tocarlo.
 
 El seed imprime los PIN de desarrollo al final. Son de desarrollo: en el local
 real los asigna la dueña desde el panel.

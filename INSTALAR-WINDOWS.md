@@ -105,38 +105,30 @@ Tiene que responder `CREATE ROLE` y `CREATE DATABASE`. Cerrá la ventana.
 
 ## 3. Traer el código y levantarlo
 
-**El repo no tiene remoto: es local.** No hay ninguna URL que clonar, así que
-`git clone <URL>` no es una opción hasta que lo subas a algún lado.
-
-**Opción A, por USB (lo más simple).** En la máquina Linux, desde la carpeta
-del proyecto:
-
-    git bundle create ~/restaurante.bundle --all
-
-Eso deja **un solo archivo** con todo el repo y su historial. Copialo al USB, y
-en Windows, con **Git Bash**:
+En **Git Bash**:
 
     cd ~
-    git clone ~/restaurante.bundle restaurante
+    git clone https://github.com/BladyLuna/restaurante.git
     cd restaurante
     npm install
 
-Un bundle es mejor que copiar la carpeta entera: `node_modules/` no viaja (son
-miles de archivos y se reinstala igual con `npm install`), y el historial de
-commits llega intacto, que es lo que te permite mostrar cómo creció el proyecto.
+El `.env` **viene incluido en el repo**: no hay que crearlo ni copiar ningún
+archivo de ejemplo. Es un proyecto académico de demostración y sus valores son
+de desarrollo, así que clonar y levantar es todo.
 
-**Opción B, subirlo a GitHub.** Si lo hacés, cloná normalmente. Tené en cuenta
-que el `.env` **sí está versionado** (son valores de desarrollo, no credenciales
-reales), así que en un repo público quedan visibles.
+> **Sin internet en la máquina de la presentación?** Se puede llevar el repo en
+> un USB como un solo archivo. En la máquina que lo tiene:
+> `git bundle create ~/restaurante.bundle --all`, copiás ese archivo, y en
+> Windows: `git clone ~/restaurante.bundle restaurante`. Llega con todo el
+> historial y sin `node_modules` (se reinstala con `npm install`).
 
 `npm install` tarda varios minutos y es donde aparecen los problemas si algo
 quedó mal en el paso 1.1.
 
 ### El único cambio al `.env`: el puerto
 
-El `.env` **ya viene en el repo**, no hay que crearlo ni copiar el example. Solo
-hay que cambiarle el puerto: trae **5434**, que es el de la base en Docker (así
-corre en Linux), y acá Postgres está en **5432**.
+El `.env` trae el puerto **5434**, que es el de la base en Docker (así corre en
+Linux). Acá Postgres está en **5432**, así que hay que cambiarlo:
 
     cd apps/api
     notepad .env
@@ -264,7 +256,7 @@ Son 2-3 minutos. Hacelo antes de que entre el tribunal, no delante de ellos.
     [ ] PostgreSQL 16 corriendo en 5432
     [ ] Git Bash disponible
     [ ] zona horaria del sistema en Bolivia
-    [ ] código traído por bundle (o clonado de GitHub)
+    [ ] repo clonado (o traído por bundle si no hay internet)
     [ ] usuario y base `restaurante` creados
     [ ] npm install sin errores
     [ ] .env con el puerto cambiado a 5432
