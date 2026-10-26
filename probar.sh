@@ -127,7 +127,7 @@ docker exec restaurante_db psql -U restaurante -d restaurante -q -c \
 
 linea "RESUMEN"
 cat <<'FIN'
-  Funciona hoy:
+  Esta corrida acaba de probar, contra la base real:
     el menu que ve el cliente
     entrar con PIN, los tres roles
     cada rol ve solo lo que le toca
@@ -136,10 +136,14 @@ cat <<'FIN'
     todo cambio de precio con nombre y hora
     bloqueo despues de 5 PIN equivocados
 
-  Todavia NO:
-    la pantalla de la tablet
-    tomar un pedido
-    cobrar y confirmar el pago
+  Lo que este script NO toca, y se demuestra por pantalla:
+    el kiosco de la tablet, tomar un pedido y el QR
+    cobrar y confirmar el pago en caja
     la pantalla de la cocina
+    la carta, el local y el reporte de auditoria
+
+  Para esas pantallas:  cd apps/app && npx expo start --web
+  Hay dos scripts mas:  bash scripts/probar-fotos.sh
+                        bash scripts/probar-auditoria.sh
 FIN
 echo
